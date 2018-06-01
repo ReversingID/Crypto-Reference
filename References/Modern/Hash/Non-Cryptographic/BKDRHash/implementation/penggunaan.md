@@ -1,0 +1,3 @@
+# Crypto Reference
+
+## Penggunaan BKDRHash
