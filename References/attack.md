@@ -2,8 +2,6 @@
 
 ## Prerequisite
 
----
-
 Serangan terhadap kriptografi adalah upaya-upaya yang mengarah ke sistem persandian dengan tujuan memecahkan (break) algoritma. Memecahkan sandi / cipher tidak selalu berarti menemukan teknik yang praktikal bagi penyadap untuk mendapatkan plaintext dari sekadar ciphertext. Dalam riset kriptografi, memecahkan sandi merupakan usaha untuk menemukan kelemahan di cipher yang dapat dieksploitasi dan mereduksi kekuatan suatu algoritma sehingga resource maupun kompleksitas yang dibutuhkan lebih kecil dibandingkan dengan kemungkinan terburuk (jika dilakukan brute-force).
 
 Mustahil untuk memahami kriptografi dan kriptanalisis tanpa memiliki pemahaman yang baik tentang konsep-konsep yang berkaitan. Beberapa konsep yang penting untuk dipahami sebelum melangkah lebih jauh dalam analisis algoritma kriptografi adalah:
@@ -13,8 +11,6 @@ Mustahil untuk memahami kriptografi dan kriptanalisis tanpa memiliki pemahaman y
 * pemrograman (implementasi algoritma)
 
 ## Attack Model
-
----
 
 Dalam kriptanalisis, sebuah _attack model_ (atau _attack types_) adalah klasifikasi serangan terhadap kriptografi berdasarkan akses yang dibutuhkan untuk memecahkan pesan terenkripsi. Semakin besar akses yang dibutuhkan maka semakin banyak informasi yang dapat digunakan untuk memecahkan sandi.
 
@@ -26,6 +22,7 @@ Terdapat beberapa model umum yang sering digunakan, antara lain (diurutkan berda
 * Chosen-ciphertext attack
 * Open key model attack
 * Side-channel attack
+
 
 ### Cipher-Only Attack (COA)
 
@@ -86,9 +83,6 @@ Serangan jenis ini tidak menargetkan secara langsung pesan, algoritma, maupun pe
 
 
 ## Attack Category
-
----
-
 
 Berdasarkan kuantitas serta kualitas informasi rahasia yang didapatkan melalui cryptanalisis, serangan dapat dibagi menjadi beberapa kategori:
 
