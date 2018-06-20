@@ -1,0 +1,31 @@
+# Crypto Reference
+
+## CAST-128 (CAST5) Cipher
+
+* Pencipta:
+    - Carlisle Adams
+    - Stafford Tavares
+* Kategori: Block Cipher
+* Ukuran block (bit): 64
+* Ukuran kunci (bit): 40 - 128
+* Jumlah round: 12 / 16
+* Struktur: Feistel Network
+* Diturunkan dari: N/A
+* Penerus: CAST-256
+
+## CAST-256 (CAST6) Cipher
+
+* Pencipta:
+    - Carlisle Adams
+    - Stafford Tavares
+    - Howard Heys
+    - Michael Wiener
+* Kategori: Block Cipher
+* Ukuran block (bit): 128
+* Ukuran kunci (bit): 128 / 160 / 192 / 224 / 256
+* Jumlah round: 48
+* Struktur: Generalized Feistel Network
+* Diturunkan dari: CAST-128
+* Penerus: N/A
+
+CAST-256 atau CAST6 merupakan salah satu algoritma penyandian yang dikirim sebagai kandidat dalam Advanced Encryption Standard (AES).
