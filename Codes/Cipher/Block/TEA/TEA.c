@@ -12,6 +12,10 @@
 */
 #include <stdint.h>
 
+
+typedef uint32_t block_t[2];
+
+
 /* ********************* INTERNAL FUNCTIONS PROTOTYPE ********************* */
 
 
@@ -27,6 +31,18 @@ void tea_decrypt_cbc(uint32_t* data, uint32_t block_count, uint32_t key[4], uint
 /** Cipher Feedback mode **/
 void tea_encrypt_cfb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2]);
 void tea_decrypt_cfb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2]);
+
+/** Counter mode **/
+void tea_encrypt_ctr(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t nonce[2]);
+void tea_decrypt_ctr(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t nonce[2]);
+
+/** Output Feedback mode **/
+void tea_encrypt_ofb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2]);
+void tea_decrypt_ofb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2]);
+
+/** Propagating Cipher Block Chaining mode **/
+void tea_encrypt_pcbc(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2]);
+void tea_decrypt_pcbc(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2]);
 
 
 /* ************************ CRYPTOGRAPHY ALGORITHM ************************ */
@@ -91,7 +107,7 @@ tea_decrypt(uint32_t val[2], uint32_t key[4])
 /*
     Enkripsi block data dengan mode ECB.
     Enkripsi diberlakukan secara independen tanpa ada hubungan dengan block
-    ebelum dan berikutnya.
+    sebelum dan berikutnya.
     Pastikan jumlah block valid.
 */
 void 
@@ -106,7 +122,7 @@ tea_encrypt_ecb(uint32_t* data, uint32_t block_count, uint32_t key[4])
 /*
     Dekripsi block data dengan mode ECB.
     Dekripsi diberlakukan secara independen tanpa ada hubungan dengan block
-    ebelum dan berikutnya.
+    sebelum dan berikutnya.
     Pastikan jumlah block valid.
 */
 void 
@@ -135,7 +151,7 @@ tea_encrypt_cbc(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t 
 
     for (i = 0; i < block_count; i += 2)
     {
-        // XOR block plaintext dengan block ciphetext sebelumnya
+        // XOR block plaintext dengan block ciphertext sebelumnya
         data[i    ] ^= prev_block[0];
         data[i + 1] ^= prev_block[1];
 
@@ -191,7 +207,8 @@ tea_decrypt_cbc(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t 
     Enkripsi block data dengan mode CFB.
     Pastikan jumlah block valid.
 */
-void tea_encrypt_cfb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2])
+void 
+tea_encrypt_cfb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2])
 {
     uint32_t i;
     uint32_t prev_block[2];
@@ -219,7 +236,8 @@ void tea_encrypt_cfb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint
     Dekripsi block data dengan mode CFB.
     Pastikan jumlah block valid.
 */
-void tea_decrypt_cfb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2])
+void 
+tea_decrypt_cfb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2])
 {
     uint32_t i;
     uint32_t prev_block[2];
@@ -245,6 +263,180 @@ void tea_decrypt_cfb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint
         // Simpan block ciphertext untuk operasi XOR berikutnya
         prev_block[0] = cipher_block[0];
         prev_block[1] = cipher_block[1];
+    }
+}
+
+
+/*
+    Enkripsi block data dengan mode CTR.
+    Pastikan jumlah block valid.
+*/
+void 
+tea_encrypt_ctr(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t nonce[2])
+{
+    uint32_t i;
+    uint32_t nonce_local[2];
+
+    nonce_local[0] = nonce[0];
+    nonce_local[1] = nonce[1];
+
+    for (i = 0; i < block_count; i += 2)
+    {
+        // Enkripsi nonce + counter
+        tea_encrypt(nonce_local, key);
+
+        // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
+        data[i    ] ^= nonce_local[0];
+        data[i + 1] ^= nonce_local[1];
+
+        // Naikkan nilai nonce dengan 1.
+        nonce_local[1] ++;
+    }
+}
+
+/*
+    Dekripsi block data dengan mode CTR.
+    Pastikan jumlah block valid.
+*/
+void 
+tea_decrypt_ctr(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t nonce[2])
+{
+    uint32_t i;
+    uint32_t nonce_local[2];
+
+    nonce_local[0] = nonce[0];
+    nonce_local[1] = nonce[1];
+
+    for (i = 0; i < block_count; i += 2)
+    {
+        // Enkripsi nonce + counter
+        tea_encrypt(nonce_local, key);
+
+        // XOR nonce terenkripsi dengan ciphertext untuk mendapatkan plaintext.
+        data[i    ] ^= nonce_local[0];
+        data[i + 1] ^= nonce_local[1];
+
+        // Naikkan nilai nonce dengan 1.
+        nonce_local[1] ++;
+    }
+}
+
+
+/*
+    Enkripsi block data dengan mode OFB.
+    Pastikan jumlah block valid.
+*/
+void 
+tea_encrypt_ofb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2])
+{
+    uint32_t i;
+    uint32_t prev_block[2];
+
+    prev_block[0] = iv[0];
+    prev_block[1] = iv[1];
+
+    for (i = 0; i < block_count; i += 2)
+    {
+        // Enkripsi block sebelumnya 
+        // gunakan IV bila ini block pertama
+        tea_encrypt(prev_block, key);
+
+        // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
+        data[i    ] ^= prev_block[0];
+        data[i + 1] ^= prev_block[1];
+    }
+}
+
+/*
+    Dekripsi block data dengan mode OFB.
+    Pastikan jumlah block valid.
+*/
+void 
+tea_decrypt_ofb(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2])
+{
+    uint32_t i;
+    uint32_t prev_block[2];
+
+    prev_block[0] = iv[0];
+    prev_block[1] = iv[1];
+
+    for (i = 0; i < block_count; i += 2)
+    {
+        // Enkripsi block sebelumnya 
+        // gunakan IV bila ini block pertama
+        tea_encrypt(prev_block, key);
+
+        // XOR ciphertext dengan output dari enkripsi untuk mendapatkan plaintext.
+        data[i    ] ^= prev_block[0];
+        data[i + 1] ^= prev_block[1];
+    }
+}
+
+
+/*
+    Enkripsi block data dengan mode OFB.
+    Pastikan jumlah block valid.
+*/
+void 
+tea_encrypt_pcbc(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2])
+{
+    uint32_t i;
+    uint32_t prev_block[2];
+    uint32_t ptext_block[2];
+
+    prev_block[0] = iv[0];
+    prev_block[1] = iv[1];
+
+    for (i = 0; i < block_count; i += 2)
+    {
+        // Simpan plaintext untuk dioperasikan dengan block berikutnya.
+        ptext_block[0] = data[i    ];
+        ptext_block[1] = data[i + 1];
+
+        // XOR plaintext dengan block sebelumnya
+        // gunakan IV bila ini block pertama
+        data[i    ] ^= prev_block[0];
+        data[i + 1] ^= prev_block[1];
+
+        // Enkripsi
+        tea_encrypt(&data[i], key);
+
+        // Hitung block berikutnya
+        prev_block[0] = ptext_block[0] ^ data[i    ];
+        prev_block[1] = ptext_block[1] ^ data[i + 1];
+    }
+}
+
+/*
+    Dekripsi block data dengan mode OFB.
+    Pastikan jumlah block valid.
+*/
+void 
+tea_decrypt_pcbc(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t iv[2])
+{
+    uint32_t i;
+    uint32_t prev_block[2];
+    uint32_t ctext_block[2];
+
+    prev_block[0] = iv[0];
+    prev_block[1] = iv[1];
+
+    for (i = 0; i < block_count; i+= 2)
+    {
+        // Simpan ciphertext untuk dioperasikan dengan block berikutnya.
+        ctext_block[0] = data[i    ];
+        ctext_block[1] = data[i + 1];
+
+        // Dekripsi ciphertext untuk mendapatkan plaintext ter-XOR
+        tea_decrypt(&data[i], key);
+
+        // XOR dengan block sebelumnya
+        data[i    ] ^= prev_block[0];
+        data[i + 1] ^= prev_block[1];
+
+        // Hitung block berikutnya
+        prev_block[0] = ctext_block[0] ^ data[i    ];
+        prev_block[1] = ctext_block[1] ^ data[i + 1];
     }
 }
 
@@ -284,7 +476,9 @@ int main(int argc, char* argv[])
     tea_encrypt_ecb((uint32_t*)encbuffer, 8, key);         // ECB
     // tea_encrypt_cbc((uint32_t*)encbuffer, 8, key, iv);     // CBC
     // tea_encrypt_cfb((uint32_t*)encbuffer, 8, key, iv);     // CFB
-
+    // tea_encrypt_ctr((uint32_t*)encbuffer, 8, key, iv);     // CTR
+    // tea_encrypt_ofb((uint32_t*)encbuffer, 8, key, iv);     // OFB
+    // tea_encrypt_pcbc((uint32_t*)encbuffer, 8, key, iv);    // PCBC
     printx("Encrypted:", encbuffer, 64);
 
     // Tes Dekripsi -----------------------------------------------------------------
@@ -293,6 +487,9 @@ int main(int argc, char* argv[])
     tea_decrypt_ecb((uint32_t*)decbuffer, 8, key);         // ECB
     // tea_decrypt_cbc((uint32_t*)decbuffer, 8, key, iv);     // CBC
     // tea_decrypt_cfb((uint32_t*)decbuffer, 8, key, iv);     // CFB
+    // tea_decrypt_ctr((uint32_t*)decbuffer, 8, key, iv);     // CTR
+    // tea_decrypt_ofb((uint32_t*)decbuffer, 8, key, iv);     // OFB
+    // tea_decrypt_pcbc((uint32_t*)decbuffer, 8, key, iv);    // PCBC
     printx("Decrypted:", decbuffer, 64);
 
     printf("\nFinal: %s\n", decbuffer);
