@@ -817,22 +817,22 @@ int main(int argc, char* argv[])
 
     // Enkripsi - block: 128   key: 128
     memcpy(encbuffer, data, length);
-    camellia_encrypt_ecb(encbuffer, 4, key);       // ECB
-    // camellia_encrypt_cbc(encbuffer, 4, key, iv);   // CBC
-    // camellia_encrypt_cfb(encbuffer, 4, key, iv);   // CFB
-    // camellia_encrypt_ctr(encbuffer, 4, key, iv);   // CTR
-    // camellia_encrypt_ofb(encbuffer, 4, key, iv);   // OFB
-    // camellia_encrypt_pcbc(encbuffer, 4, key, iv);  // PCBC
+    camellia_encrypt_ecb(encbuffer, 64, key);       // ECB
+    // camellia_encrypt_cbc(encbuffer, 64, key, iv);   // CBC
+    // camellia_encrypt_cfb(encbuffer, 64, key, iv);   // CFB
+    // camellia_encrypt_ctr(encbuffer, 64, key, iv);   // CTR
+    // camellia_encrypt_ofb(encbuffer, 64, key, iv);   // OFB
+    // camellia_encrypt_pcbc(encbuffer, 64, key, iv);  // PCBC
     printx("Encrypted", encbuffer, 64);
 
     // Dekripsi - block: 128   key: 128
     memcpy(decbuffer, encbuffer, 64);
-    camellia_decrypt_ecb(decbuffer, 4, key);       // ECB
-    // camellia_decrypt_cbc(decbuffer, 4, key, iv);   // CBC
-    // camellia_decrypt_cfb(decbuffer, 4, key, iv);   // CFB
-    // camellia_decrypt_ctr(decbuffer, 4, key, iv);   // CTR
-    // camellia_decrypt_ofb(decbuffer, 4, key, iv);   // OFB
-    // camellia_decrypt_pcbc(decbuffer, 4, key, iv);  // PCBC
+    camellia_decrypt_ecb(decbuffer, 64, key);       // ECB
+    // camellia_decrypt_cbc(decbuffer, 64, key, iv);   // CBC
+    // camellia_decrypt_cfb(decbuffer, 64, key, iv);   // CFB
+    // camellia_decrypt_ctr(decbuffer, 64, key, iv);   // CTR
+    // camellia_decrypt_ofb(decbuffer, 64, key, iv);   // OFB
+    // camellia_decrypt_pcbc(decbuffer, 64, key, iv);  // PCBC
     printx("Decrypted", decbuffer, 64);
 
     printf("\nFinal: %s\n", decbuffer);

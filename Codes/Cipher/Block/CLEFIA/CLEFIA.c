@@ -964,22 +964,22 @@ int main(int argc, char* argv[])
 
     // Enkripsi - block: 128   key: 256
     memcpy(encbuffer, data, length);
-    clefia_encrypt_ecb(encbuffer, 4, key);       // ECB
-    // clefia_encrypt_cbc(encbuffer, 4, key, iv);   // CBC
-    // clefia_encrypt_cfb(encbuffer, 4, key, iv);   // CFB
-    // clefia_encrypt_ctr(encbuffer, 4, key, iv);   // CTR
-    // clefia_encrypt_ofb(encbuffer, 4, key, iv);   // OFB
-    // clefia_encrypt_pcbc(encbuffer, 4, key, iv);  // PCBC
+    clefia_encrypt_ecb(encbuffer, 64, key);       // ECB
+    // clefia_encrypt_cbc(encbuffer, 64, key, iv);   // CBC
+    // clefia_encrypt_cfb(encbuffer, 64, key, iv);   // CFB
+    // clefia_encrypt_ctr(encbuffer, 64, key, iv);   // CTR
+    // clefia_encrypt_ofb(encbuffer, 64, key, iv);   // OFB
+    // clefia_encrypt_pcbc(encbuffer, 64, key, iv);  // PCBC
     printx("Encrypted:", encbuffer, 64);
 
     // Dekripsi - block: 128   key: 256
     memcpy(decbuffer, encbuffer, 64);
-    clefia_decrypt_ecb(decbuffer, 4, key);       // ECB
-    // clefia_decrypt_cbc(decbuffer, 4, key, iv);   // CBC
-    // clefia_decrypt_cfb(decbuffer, 4, key, iv);   // CFB
-    // clefia_decrypt_ctr(decbuffer, 4, key, iv);   // CTR
-    // clefia_decrypt_ofb(decbuffer, 4, key, iv);   // OFB
-    // clefia_decrypt_pcbc(decbuffer, 4, key, iv);  // PCBC
+    clefia_decrypt_ecb(decbuffer, 64, key);       // ECB
+    // clefia_decrypt_cbc(decbuffer, 64, key, iv);   // CBC
+    // clefia_decrypt_cfb(decbuffer, 64, key, iv);   // CFB
+    // clefia_decrypt_ctr(decbuffer, 64, key, iv);   // CTR
+    // clefia_decrypt_ofb(decbuffer, 64, key, iv);   // OFB
+    // clefia_decrypt_pcbc(decbuffer, 64, key, iv);  // PCBC
     printx("Decrypted:", decbuffer, 64);
 
     printf("\nFinal: %s\n", decbuffer);

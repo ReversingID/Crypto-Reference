@@ -751,22 +751,22 @@ int main(int argc, char* argv[])
 
     // Enkripsi - block: 128   key: 256
     memcpy(encbuffer, data, length);
-    unicorn_encrypt_ecb(encbuffer, 4, key);       // ECB
-    // unicorn_encrypt_cbc(encbuffer, 4, key, iv);   // CBC
-    // unicorn_encrypt_cfb(encbuffer, 4, key, iv);   // CFB
-    // unicorn_encrypt_ctr(encbuffer, 4, key, iv);   // CTR
-    // unicorn_encrypt_ofb(encbuffer, 4, key, iv);   // OFB
-    // unicorn_encrypt_pcbc(encbuffer, 4, key, iv);  // PCBC
+    unicorn_encrypt_ecb(encbuffer, 64, key);       // ECB
+    // unicorn_encrypt_cbc(encbuffer, 64, key, iv);   // CBC
+    // unicorn_encrypt_cfb(encbuffer, 64, key, iv);   // CFB
+    // unicorn_encrypt_ctr(encbuffer, 64, key, iv);   // CTR
+    // unicorn_encrypt_ofb(encbuffer, 64, key, iv);   // OFB
+    // unicorn_encrypt_pcbc(encbuffer, 64, key, iv);  // PCBC
     printx("Encrypted:", encbuffer, 64);
 
     // Dekripsi - block: 128   key: 256
     memcpy(decbuffer, encbuffer, 64);
-    unicorn_decrypt_ecb(decbuffer, 4, key);       // ECB
-    // unicorn_decrypt_cbc(decbuffer, 4, key, iv);   // CBC
-    // unicorn_decrypt_cfb(decbuffer, 4, key, iv);   // CFB
-    // unicorn_decrypt_ctr(decbuffer, 4, key, iv);   // CTR
-    // unicorn_decrypt_ofb(decbuffer, 4, key, iv);   // OFB
-    // unicorn_decrypt_pcbc(decbuffer, 4, key, iv);  // PCBC
+    unicorn_decrypt_ecb(decbuffer, 64, key);       // ECB
+    // unicorn_decrypt_cbc(decbuffer, 64, key, iv);   // CBC
+    // unicorn_decrypt_cfb(decbuffer, 64, key, iv);   // CFB
+    // unicorn_decrypt_ctr(decbuffer, 64, key, iv);   // CTR
+    // unicorn_decrypt_ofb(decbuffer, 64, key, iv);   // OFB
+    // unicorn_decrypt_pcbc(decbuffer, 64, key, iv);  // PCBC
     printx("Decrypted:", decbuffer, 64);
 
     printf("\nFinal: %s\n", decbuffer);

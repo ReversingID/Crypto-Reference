@@ -161,8 +161,6 @@ tea_encrypt_cbc(uint32_t* data, uint32_t block_count, uint32_t key[4], uint32_t 
         // Simpan block ciphertext untuk operasi XOR berikutnya
         prev_block[0] = data[i    ];
         prev_block[1] = data[i + 1];
-
-
     }
 }
 
