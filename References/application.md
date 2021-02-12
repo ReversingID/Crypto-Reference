@@ -6,20 +6,20 @@ Namun seiring perkembangan ilmu, penggunaan kriptografi kini tak terbatas hanya 
 
 ## Kegunaan Kriptografi
 
-Secara umum kriptografi mencakup dua komponen dasar keamanan informasi, yaitu kerahasiaan (confidentiality) dan keutuhan (integrity).
+Secara umum kriptografi mencakup dua komponen dasar keamanan informasi, yaitu kerahasiaan (`confidentiality`) dan keutuhan (`integrity`).
 
 Secara umum konsep kriptografi dapat diterapkan untuk:
 
-* Menjaga kerahasiaan (confidentiality) pesan.
+* Menjaga kerahasiaan pesan.
 * Menjaga integritas data.
 * Keabsahan pengirim (user authentication).
 * Antipenyangkalan (nonrepudiation).
 
 ## Kriptografi Dalam Kehidupan Sehari-hari
 
-* Smart card
+-- Smart card --
 
-Salah satu aplikasi PKI (Public-Key Infrastructure) yang kian ramai digunakan. Kartu cerdas memiliki rupa fisik berupa kartu dengan chip di dalamnya dan digunakan untuk melayani banyak fungsi, mulai dari otentikasi hingga penyimpanan data.
+Salah satu aplikasi `PKI (Public-Key Infrastructure)` yang kian ramai digunakan. Kartu cerdas memiliki rupa fisik berupa kartu dengan chip di dalamnya dan digunakan untuk melayani banyak fungsi, mulai dari otentikasi hingga penyimpanan data.
 
 Untuk dapat beroperasi, kartu cerdas membutuhkan daya eksternal yang didapatkan dari pembaca (reader).
 
@@ -27,7 +27,7 @@ Kartu cerdas menyimpan kunci privat, sertifikat digital, dan informasi lainnya u
 
 Untuk otentikasi kartu, server akan mengirimkan suatu nilai atau string yang disebut challenge ke kartu untuk ditandatangani dengan kunci private yang tersimpan di dalam kartu. Hasil ini kemudian akan diverifikasi oleh mesin dengan kunci publik pemilik kartu.
 
-* Pay TV
+-- Pay TV --
 
 Pay TV adalah jasa siaran TV yang hanya dapat dinikmati oleh pelanggan yang membayar (berlangganan). Siaran Pay TV dipancarkan secara broadcast namun hanya sejumlah pesawat TV yang berhasil menangkap siaran tersebut.
 

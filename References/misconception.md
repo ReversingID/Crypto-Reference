@@ -2,10 +2,9 @@
 
 Miskonsepsi dan salah kaprah tentang kriptografi.
 
-
 ## Enkripsi vs Hash vs Encoding
 
-Enkripsi, hash, encoding merupakan tiga istilah yang sering dipertukarkan. Banyak orang yang bingung dan menganggap bahwa ketiganya merupakan hal yang sama namun sebenarnya tidak. Ketiga istilah tersebut memiliki konsep yang berbeda meski termasuk dalam kategori yang sama yaitu transformasi data atau mengubah data menjadi bentuk lain yang berbeda.
+`Enkripsi`, `hash`, dan `encoding` merupakan tiga istilah yang sering dipertukarkan. Banyak orang yang bingung dan menganggap bahwa ketiganya merupakan hal yang sama namun sebenarnya tidak. Ketiga istilah tersebut memiliki konsep yang berbeda meski termasuk dalam kategori yang sama yaitu transformasi data atau mengubah data menjadi bentuk lain yang berbeda.
 
 #### Enkripsi
 
