@@ -21,36 +21,36 @@ Dalam beberapa kasus, langkah (2) mungkin akan mendahului langkah (1). Dalam pen
 
 Sebagian besar usaha dicurahkan untuk menentukan bagaimana sistem bekerja secara umum.
 
-Berdasarkan course OP-20-G Cryptanalysis yang diberikan pada Navy Departement, solusi untuk sandi substitusi dapat diperoleh melalui serangkaian langkah berikut:
+Berdasarkan course `OP-20-G Cryptanalysis` yang diberikan pada Navy Departement, solusi untuk sandi substitusi dapat diperoleh melalui serangkaian langkah berikut:
 
 * Analisis kriptogram
 
-1. persiapan tabel frekuensi
-2. mencari perulangan
-3. penentuan tipe sistem yang digunakan
-4. persiapan worksheet
-5. persiapan alfabet individual (jika terdapat lebih dari satu).
-6. pembuatan tabel (tabulasi) untuk perulangan panjang dan distribusi huruf yang aneh.
+    1. persiapan tabel frekuensi
+    2. mencari perulangan
+    3. penentuan tipe sistem yang digunakan
+    4. persiapan worksheet
+    5. persiapan alfabet individual (jika terdapat lebih dari satu).
+    6. pembuatan tabel (tabulasi) untuk perulangan panjang dan distribusi huruf yang aneh.
 
 * Klasifikasi vokal dan konsonan dengan melakukan studi
 
-1. frekuensi
-2. spasi
-3. kombinasi huruf
-4. perulangan
+    1. frekuensi
+    2. spasi
+    3. kombinasi huruf
+    4. perulangan
 
 * identifikasi huruf
 
-1. proses breaking dan wedge
-2. verifikasi asumsi yang muncul
-3. substitusi nilai yang didapat pada pesan
-4. pemulihan (recovery) nilai yang mungkin untuk melengkapi solusi
+    1. proses breaking dan wedge
+    2. verifikasi asumsi yang muncul
+    3. substitusi nilai yang didapat pada pesan
+    4. pemulihan (recovery) nilai yang mungkin untuk melengkapi solusi
 
 * rekonstruksi sistem
 
-1. membangun ulang tabel sandi
-2. pemulihan kunci yang digunakan dalam pengoperasian sistem
-3. pemulihan kunci atau frasa kunci yang digunakan untuk merekonstruksi urutan alfabet.
+    1. membangun ulang tabel sandi
+    2. pemulihan kunci yang digunakan dalam pengoperasian sistem
+    3. pemulihan kunci atau frasa kunci yang digunakan untuk merekonstruksi urutan alfabet.
 
 Semua proses di atas dilakukan dengan pertimbangan logis yang dibutuhkan dan bukan merupakan langkah-langkah baku yang harus ditempuh.
 

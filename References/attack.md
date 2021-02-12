@@ -24,26 +24,19 @@ Terdapat beberapa model umum yang sering digunakan, antara lain (diurutkan berda
 * Side-channel attack
 
 
-### Cipher-Only Attack (COA)
+#### Ciphertext-Only Attack (COA)
 
-Tujuan: mendapatkan key atau plaintext
+Tujuan: mendapatkan key atau plaintext.
 
-Pada jenis serangan ini diasumsikan bahwa hanya terdapat akses terhadap sekumpulan ciphertext tanpa adanya akses menuju plaintext. Dalam beberapa skenario, ciphertext dapat dikumpulkan melalui penyadapan maupun penyitaan terhadap sumber data yang terenkrip.
-
-Di antara sekian model, jenis serangan ini merupakan jenis serangan yang paling lemah karena kurangnya informasi yang berguna. Namun model ini adalah realita yang paling sering dijumpai dalam kriptanalisis.
+Di jenis serangan ini diasumsikan bahwa hanya terdapat akses terhadap sekumpulan ciphertext tanpa adanya akses terhadap plaintext maupun fungsi enkripsi. Jenis serangan ini adalah yang paling lemah karena kurangnya informasi yang berguna. Namun, jenis ini merupakan jenis yang paling sering dijumpai dalam kriptanalisis.
 
 Beberapa informasi sekunder diperlukan untuk memecahkan pesan menggunakan model ini, misal: bahasa yang digunakan dalam plaintext.
 
-Di model ini mencakup teknik serangan:
-
-* Bruteforce attack
-
-
-### Known Plaintext Attack (KPA)
+#### Known Plaintext Attack (KPA)
 
 Tujuan: mendapatkan key
 
-Pada jenis serangan ini diasumsikan bahwa terdapat akses terhadap sekumpulan pasangan plaintext-ciphertext yang diciptakan dengan kunci yang sama. Diasumsikan pula bahwa terdapat batasan jumlah pasangan plaintext-ciphertext yang dapat digunakan. 
+Di jenis serangan ini diasumsikan bahwa terdapat akses terhadap sekumpulan pasangan plaintext-ciphertext yang diciptakan dengan kunci yang sama. Analisis dilakukan untuk melihat korelasi antara plaintext dan ciphertext. Jumlah plaintext-ciphertext yang dapat digunakan terbatas atau tidak dalam kendali analis sehingga tidak dapat diciptakan secara bebas.
 
 Terdapat beberapa kemungkinan skenario yang membuat serangan jenis ini dapat terjadi, sebagai contoh antara lain:
 
@@ -51,40 +44,39 @@ Terdapat beberapa kemungkinan skenario yang membuat serangan jenis ini dapat ter
 * struktur data atau payload selalu sama
 * penyimpanan sebagian informasi sensitif dalam log atau penyimpanan yang tak aman.
 
-### Chosen-Plaintext Attack (CPA)
-
-Tujuan: mencari key atau plaintext
-
-Pada jenis serangan ini diasumsikan bahwa terdapat akses terhadap fungsi enkripsi dan ciphertext yang dihasilkan. Analisis dapat dilakukan dengan memilih beberapa plaintext yang akan dienkrip sehingga observasi dapat dilakukan terhadap ciphertext terkait.
-
-Dengan serangan model ini, analisis dapat memungkinkan untuk terjadi eksplorasi berbagai area dari state space yang diinginkan. Sebagai implikasi, analis dapat mengeksploitasi kerentanan serta mengobservasi adanya perilaku nonrandom yang muncul akibat plaintext tertentu.
-
-#### Adaptive Chosen-Plaintext Attack (CPA2)
-
-Model ini adalah bagian dari Chosen-Plaintext Attack. Dalam analisis ini,  ciphertext berdasarkan plaintext yang diberikan, dalam setiap langkah analisis analisis dapat dilakukan dengan melihat hasil dari 
-
-### Chosen-Ciphertext Attack (CCA)
+#### Chosen-Plaintext Attack (CPA)
 
 Tujuan: mendapatkan key
 
-Pada jenis serangan ini diasumsikan bahwa terdapat akses terhadap fungsi decryption, dan plaintext yang dihasilkan. Analisis dapat dilakukan dengan memilih sembarang ciphertext yang akan didekrip sehingga observasi terhadap plaintext terkait dapat dilakukan.
- 
-### Open Key Model Attack
+Di jenis serangan ini diasumsikan bahwa terdapat akses terhadap fungsi enkripsi dan ciphertext yang dihasilkan. Analis dapat menentukan beberapa plaintext yang akan dienkrip dan mengamati ciphertext yang dihasilkan. Analisis ini mengasumsikan implementasi kriptografi modern (software dan hardware) bersifat blackbox, sehingga analisis dapat mengamati proses transformasi.
+
+Terdapat dua variasi Chosen-Plaintext Attack:
+
+- `Batch Chosen-Plaintext Attack`: pemrosesan laintext dilakukan sekaligus sehingga ciphertext hanya dapat diperoleh ketika seluruh plaintext telah selesai diproses.
+- `Adaptive Chosen-Plaintext Attack`: analis dapat memproses plaintext berikutnya setelah mengamati ciphertext yang telah dihasilkan.
+
+#### Chosen-Ciphertext Attack (CCA)
+
+Tujuan: mendapatkan key
+
+Di jenis serangan ini diasumsikan bahwa terdapat akses terhadap fungsi dekripsi dan plaintext yang dihasilkan. Analis dapat menentukan sembarang ciphertext yang akan didekrip sehingga observasi terhadap plaintext terkait dapat dilakukan.
+
+#### Open Key Model Attack
 
 Tujuan: mendapatkan key (utuh) atau plaintext
 
-Pada jenis serangan ini diasumsikan bahwa terdapat informasi sebagian key yang digunakan untuk menciptakan ciphertext.
+Di jenis serangan ini diasumsikan bahwa terdapat informasi sebagian key yang digunakan untuk menciptakan ciphertext.
 
-### Side-Channel Attack
+#### Side-Channel Attack
 
-Tujuan: mendapatkan key
+Tujuan: mendapatkan key.
 
 Serangan jenis ini tidak menargetkan secara langsung pesan, algoritma, maupun perkakas yang melakukan enkripsi/dekripsi melainkan dengan melakukan observasi adanya efek samping ketika proses enkripsi/dekripsi berlangsung. Dengan demikian, kekuatan dari cipher bukanlah faktor utama.
 
 
 ## Attack Category
 
-Berdasarkan kuantitas serta kualitas informasi rahasia yang didapatkan melalui cryptanalisis, serangan dapat dibagi menjadi beberapa kategori:
+Berdasarkan kuantitas serta kualitas informasi rahasia yang didapatkan melalui cryptanalysis, serangan dapat dibagi menjadi beberapa kategori:
 
 * _Total Break_: attacker dapat mengetahui secret key yang digunakna.
 * _Global Deduction_: attacker menemukan functionalitas yang sama (ekivalen) dengan al_goritma enkripsi dan dekripsi tanpa mengetahui kunci yang digunakan
