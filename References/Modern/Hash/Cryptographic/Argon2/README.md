@@ -1,6 +1,6 @@
 # Crypto-Reference
 
-## Abacus Hash
+## Argon2 Hash
 
 * Pencipta: 
 
