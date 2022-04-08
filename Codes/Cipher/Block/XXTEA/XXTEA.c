@@ -129,12 +129,12 @@ int main(int argc, char* argv[])
 
     // Enkripsi
     memcpy(encbuffer, data, length);
-    xxtea_encrypt((uint32_t*)encbuffer, 8, key);
+    xxtea_encrypt((uint32_t*)encbuffer, 16, key);
     printx("Encrypted:", encbuffer, 64);
 
     // Dekripsi
     memcpy(decbuffer, encbuffer, 64);
-    xxtea_decrypt((uint32_t*)decbuffer, 8, key);
+    xxtea_decrypt((uint32_t*)decbuffer, 16, key);
     printx("Decrypted:", decbuffer, 64);
 
     printf("\nFinal: %s\n", decbuffer);

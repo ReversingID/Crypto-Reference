@@ -464,23 +464,23 @@ int main(int argc, char* argv[])
     // Tes Enkripsi -----------------------------------------------------------------
     memcpy(encbuffer, data, length);
     // Casting dari char* menjadi uint32_t*
-    xtea_encrypt_ecb((uint32_t*)encbuffer, 8, key);         // ECB
-    // xtea_encrypt_cbc((uint32_t*)encbuffer, 8, key, iv);     // CBC
-    // xtea_encrypt_cfb((uint32_t*)encbuffer, 8, key, iv);     // CFB
-    // xtea_encrypt_ctr((uint32_t*)encbuffer, 8, key, iv);     // CTR
-    // xtea_encrypt_ofb((uint32_t*)encbuffer, 8, key, iv);     // OFB
-    // xtea_encrypt_pcbc((uint32_t*)encbuffer, 8, key, iv);    // PCBC
+    xtea_encrypt_ecb((uint32_t*)encbuffer, 16, key);         // ECB
+    // xtea_encrypt_cbc((uint32_t*)encbuffer, 16, key, iv);     // CBC
+    // xtea_encrypt_cfb((uint32_t*)encbuffer, 16, key, iv);     // CFB
+    // xtea_encrypt_ctr((uint32_t*)encbuffer, 16, key, iv);     // CTR
+    // xtea_encrypt_ofb((uint32_t*)encbuffer, 16, key, iv);     // OFB
+    // xtea_encrypt_pcbc((uint32_t*)encbuffer, 16, key, iv);    // PCBC
     printx("Encrypted:", encbuffer, 64);
 
     // Tes Dekripsi -----------------------------------------------------------------
     memcpy(decbuffer, encbuffer, 64);
     // casting dari char* menjadi uint32_t*
-    xtea_decrypt_ecb((uint32_t*)decbuffer, 8, key);         // ECB
-    // xtea_decrypt_cbc((uint32_t*)decbuffer, 8, key, iv);     // CBC
-    // xtea_decrypt_cfb((uint32_t*)decbuffer, 8, key, iv);     // CFB
-    // xtea_decrypt_ctr((uint32_t*)decbuffer, 8, key, iv);     // CTR
-    // xtea_decrypt_ofb((uint32_t*)decbuffer, 8, key, iv);     // OFB
-    // xtea_decrypt_pcbc((uint32_t*)decbuffer, 8, key, iv);    // PCBC
+    xtea_decrypt_ecb((uint32_t*)decbuffer, 16, key);         // ECB
+    // xtea_decrypt_cbc((uint32_t*)decbuffer, 16, key, iv);     // CBC
+    // xtea_decrypt_cfb((uint32_t*)decbuffer, 16, key, iv);     // CFB
+    // xtea_decrypt_ctr((uint32_t*)decbuffer, 16, key, iv);     // CTR
+    // xtea_decrypt_ofb((uint32_t*)decbuffer, 16, key, iv);     // OFB
+    // xtea_decrypt_pcbc((uint32_t*)decbuffer, 16, key, iv);    // PCBC
     printx("Decrypted:", decbuffer, 64);
 
     printf("\nFinal: %s\n", decbuffer);
