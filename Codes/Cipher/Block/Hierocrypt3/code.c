@@ -3,20 +3,28 @@
     Archive of Reversing.ID
     Block Cipher
 
-    Assemble:
-        (gcc)
-        $ gcc -m32 -S -masm=intel -o Hierocrypt3.asm Hierocrypt3.c
+Compile:
+    (msvc)
+    $ cl code.c
 
-        (msvc)
-        $ cl /c /FaBBS.asm Hierocrypt3.c
+Assemble:
+    (gcc)
+    $ gcc -m32 -S -masm=intel -o code.asm code.c
+
+    (msvc)
+    $ cl /c /FaBBS.asm code.c
 */
 #include <stdint.h>
 #include <string.h>
 #include "../testutil.h"
 
 /* ************************ CONFIGURATION & SEED ************************ */
-#define GF8         0x163
-#define MAX_ROUND   8
+#define BLOCKSIZE       128
+#define BLOCKSIZEB      16
+#define KEYSIZE         128
+#define KEYSIZEB        16
+#define GF8             0x163
+#define MAX_ROUND       8
 
 typedef uint8_t HC3_KS[MAX_ROUND + 1][8][4];
 
@@ -135,61 +143,65 @@ typedef struct
 
 
 /* ********************* INTERNAL FUNCTIONS PROTOTYPE ********************* */
+void block_encrypt(hc3_t * config, uint8_t val[BLOCKSIZEB]);
+void block_decrypt(hc3_t * config, uint8_t val[BLOCKSIZEB]);
+void key_setup(hc3_t * config, uint8_t secret[32]);
+
 /* derajat sebuah polinomial */
 int32_t  polynom32_degree   (uint32_t a);
 uint32_t polynom32_multiply (uint32_t a, uint32_t b);
 uint32_t polynom32_mod      (uint32_t a, uint32_t b);
 
-void hcrypt_mdsl  (uint8_t * dst, uint8_t * src);
-void hcrypt_imdsl (uint8_t * dst, uint8_t * src);
-void hcrypt_xs    (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2);
-void hcrypt_ixs   (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2);
+void mdsl  (uint8_t * dst, uint8_t * src);
+void imdsl (uint8_t * dst, uint8_t * src);
+void xs    (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2);
+void ixs   (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2);
 
 void mdsh_multiply (uint8_t * dst, uint8_t * src, uint32_t x);
 
-void hcrypt_mdsh (uint8_t dst[4][4], uint8_t src[4][4]);
-void hcrypt_imdsh(uint8_t dst[4][4], uint8_t src[4][4]);
+void mdsh (uint8_t dst[4][4], uint8_t src[4][4]);
+void imdsh(uint8_t dst[4][4], uint8_t src[4][4]);
 
-void hcrypt_keyf (uint8_t * in, uint8_t * fout, uint8_t *fkey);
-void hcrypt_keyp (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index);
-void hcrypt_keyc (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index);
+void keyf (uint8_t * in, uint8_t * fout, uint8_t *fkey);
+void keyp (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index);
+void keyc (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index);
 
 void swap_key (uint8_t * L, uint8_t * R);
 
 
 /* ********************* MODE OF OPERATIONS PROTOTYPE ********************* */
 /** Electronic Code Book mode **/
-void hc3_encrypt_ecb(char* data, uint32_t length, char * key);
-void hc3_decrypt_ecb(char* data, uint32_t length, char * key);
+void hc3_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
+void hc3_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
 
 /** Cipher Block Chaining mode **/
-void hc3_encrypt_cbc(char* data, uint32_t length, char * key, char * iv);
-void hc3_decrypt_cbc(char* data, uint32_t length, char * key, char * iv);
+void hc3_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void hc3_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Cipher Feedback mode **/
-void hc3_encrypt_cfb(char* data, uint32_t length, char * key, char * iv);
-void hc3_decrypt_cfb(char* data, uint32_t length, char * key, char * iv);
+void hc3_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void hc3_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Counter mode **/
-void hc3_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce);
-void hc3_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce);
+void hc3_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
+void hc3_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
 
 /** Output Feedback mode **/
-void hc3_encrypt_ofb(char* data, uint32_t length, char * key, char * iv);
-void hc3_decrypt_ofb(char* data, uint32_t length, char * key, char * iv);
+void hc3_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void hc3_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Propagating Cipher Block Chaining mode **/
-void hc3_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv);
-void hc3_decrypt_pcbc(char* data, uint32_t length, char * key, char * iv);
+void hc3_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void hc3_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 
 /* ************************ CRYPTOGRAPHY ALGORITHM ************************ */
 /* 
     Enkripsi sebuah block dengan Hierocrypt3. 
-    Pastikan konfigurasi telah dilakukan dengan memanggil hc3_setup()
+    Pastikan konfigurasi telah dilakukan dengan memanggil key_setup()
 */
 void 
-hc3_encrypt(hc3_t * config, uint8_t val[16])
+block_encrypt(hc3_t * config, uint8_t val[BLOCKSIZEB])
 {
     uint8_t t[4][4], u[4][4];
     int32_t i, j, r;
@@ -205,18 +217,18 @@ hc3_encrypt(hc3_t * config, uint8_t val[16])
     // round 1 - 7
     for (r = 0; r < n; r++)
     {
-        hcrypt_xs (&u[0][0], &t[0][0], &config->ks[r][0][0], &config->ks[r][4][0]);
-        hcrypt_xs (&u[1][0], &t[1][0], &config->ks[r][1][0], &config->ks[r][5][0]);
-        hcrypt_xs (&u[2][0], &t[2][0], &config->ks[r][2][0], &config->ks[r][6][0]);
-        hcrypt_xs (&u[3][0], &t[3][0], &config->ks[r][3][0], &config->ks[r][7][0]);
-        hcrypt_mdsh (t, u);
+        xs (&u[0][0], &t[0][0], &config->ks[r][0][0], &config->ks[r][4][0]);
+        xs (&u[1][0], &t[1][0], &config->ks[r][1][0], &config->ks[r][5][0]);
+        xs (&u[2][0], &t[2][0], &config->ks[r][2][0], &config->ks[r][6][0]);
+        xs (&u[3][0], &t[3][0], &config->ks[r][3][0], &config->ks[r][7][0]);
+        mdsh (t, u);
     }
 
     // round 8
-    hcrypt_xs (&u[0][0], &t[0][0], &config->ks[n][0][0], &config->ks[n][4][0]);
-    hcrypt_xs (&u[1][0], &t[1][0], &config->ks[n][1][0], &config->ks[n][5][0]);
-    hcrypt_xs (&u[2][0], &t[2][0], &config->ks[n][2][0], &config->ks[n][6][0]);
-    hcrypt_xs (&u[3][0], &t[3][0], &config->ks[n][3][0], &config->ks[n][7][0]);
+    xs (&u[0][0], &t[0][0], &config->ks[n][0][0], &config->ks[n][4][0]);
+    xs (&u[1][0], &t[1][0], &config->ks[n][1][0], &config->ks[n][5][0]);
+    xs (&u[2][0], &t[2][0], &config->ks[n][2][0], &config->ks[n][6][0]);
+    xs (&u[3][0], &t[3][0], &config->ks[n][3][0], &config->ks[n][7][0]);
 
     // ubah kembali dari matriks menjadi array.
     for (r = i = 0; i < 4; i++)
@@ -226,10 +238,10 @@ hc3_encrypt(hc3_t * config, uint8_t val[16])
 
 /* 
     Dekripsi sebuah block dengan Hierocrypt3. 
-    Pastikan konfigurasi telah dilakukan dengan memanggil hc3_setup()
+    Pastikan konfigurasi telah dilakukan dengan memanggil key_setup()
 */
 void 
-hc3_decrypt(hc3_t * config, uint8_t val[16])
+block_decrypt(hc3_t * config, uint8_t val[BLOCKSIZEB])
 {
     uint8_t t[4][4], u[4][4];
     int32_t i, j, r;
@@ -245,37 +257,33 @@ hc3_decrypt(hc3_t * config, uint8_t val[16])
     // round 1 - 7
     for (r = 0; r < n; r++)
     {
-        hcrypt_ixs (&u[0][0], &t[0][0], &config->dks[r][0][0], &config->dks[r][4][0]);
-        hcrypt_ixs (&u[1][0], &t[1][0], &config->dks[r][1][0], &config->dks[r][5][0]);
-        hcrypt_ixs (&u[2][0], &t[2][0], &config->dks[r][2][0], &config->dks[r][6][0]);
-        hcrypt_ixs (&u[3][0], &t[3][0], &config->dks[r][3][0], &config->dks[r][7][0]);
-        hcrypt_imdsh (t, u);
+        ixs (&u[0][0], &t[0][0], &config->dks[r][0][0], &config->dks[r][4][0]);
+        ixs (&u[1][0], &t[1][0], &config->dks[r][1][0], &config->dks[r][5][0]);
+        ixs (&u[2][0], &t[2][0], &config->dks[r][2][0], &config->dks[r][6][0]);
+        ixs (&u[3][0], &t[3][0], &config->dks[r][3][0], &config->dks[r][7][0]);
+        imdsh (t, u);
     }
 
     // round 8
-    hcrypt_ixs (&u[0][0], &t[0][0], &config->dks[r][0][0], &config->dks[n][4][0]);
-    hcrypt_ixs (&u[1][0], &t[1][0], &config->dks[r][1][0], &config->dks[n][5][0]);
-    hcrypt_ixs (&u[2][0], &t[2][0], &config->dks[r][2][0], &config->dks[n][6][0]);
-    hcrypt_ixs (&u[3][0], &t[3][0], &config->dks[r][3][0], &config->dks[n][7][0]);
+    ixs (&u[0][0], &t[0][0], &config->dks[r][0][0], &config->dks[n][4][0]);
+    ixs (&u[1][0], &t[1][0], &config->dks[r][1][0], &config->dks[n][5][0]);
+    ixs (&u[2][0], &t[2][0], &config->dks[r][2][0], &config->dks[n][6][0]);
+    ixs (&u[3][0], &t[3][0], &config->dks[r][3][0], &config->dks[n][7][0]);
 
     for (r = i = 0; i < 4; i++)
-    {
         for (j = 0; j < 4; j++, r++)
-        {
             val[r] = u[i][j] ^ config->dks[n + 1][i][j];
-        }
-    }
 }
 
 /* Turunkan round-key dari secret key */
 void 
-hc3_setup(hc3_t * config, uint8_t secret[32])
+key_setup(hc3_t * config, uint8_t secret[32])
 {
     uint8_t k[4][8];
     uint8_t fout[8];
     uint32_t i, j, pos, r, n;
 
-    memset(config->ks, 0, sizeof(config->ks));
+    memset(config->ks,  0, sizeof(config->ks));
     memset(config->dks, 0, sizeof(config->dks));
 
     pos = 0;
@@ -294,7 +302,7 @@ hc3_setup(hc3_t * config, uint8_t secret[32])
     for (i = 0; i < 4; i++)
         k[2][i + 4] ^= HConst[GIndex[5][1]][i];
 
-    hcrypt_keyf(&k[1][0], fout, &k[2][0]);
+    keyf(&k[1][0], fout, &k[2][0]);
     
     for (i = 0; i < 8; i++)
         k[0][i] ^= fout[i];
@@ -302,10 +310,10 @@ hc3_setup(hc3_t * config, uint8_t secret[32])
     swap_key(&k[0][0], &k[1][0]);
 
     for (r = 0; r < 5; r++)
-        hcrypt_keyp(&config->ks[r][0], &k[0], KConst[2][r]);
+        keyp(&config->ks[r][0], &k[0], KConst[2][r]);
 
     for (r = 5; r < 9; r++)
-        hcrypt_keyc(&config->ks[r][0], &k[0], KConst[2][r]);
+        keyc(&config->ks[r][0], &k[0], KConst[2][r]);
     
     r = 8;
 
@@ -316,12 +324,12 @@ hc3_setup(hc3_t * config, uint8_t secret[32])
     for (i = 1; i < r; i++)
     {
         for (j = 4; j < 8; j++)
-            hcrypt_imdsl(&config->dks[i - 1][j][0], &config->ks[r - i][j][0]);
-        hcrypt_imdsh(&config->dks[i][0], &config->ks[r - i][0]);
+            imdsl(&config->dks[i - 1][j][0], &config->ks[r - i][j][0]);
+        imdsh(&config->dks[i][0], &config->ks[r - i][0]);
     }
 
     for (j = 4; j < 8; j++)
-        hcrypt_imdsl(&config->dks[r - 1][j][0], &config->ks[0][j][0]);
+        imdsl(&config->dks[r - 1][j][0], &config->ks[0][j][0]);
 
     for (j = 0; j < 4; j++)
         for (n = 0; n < 4; n++)
@@ -403,7 +411,7 @@ polynom32_mod      (uint32_t a, uint32_t b)
 
 /* MDS-L */
 void 
-hcrypt_mdsl (uint8_t * dst, uint8_t * src)
+mdsl (uint8_t * dst, uint8_t * src)
 {
     int32_t i, j;
     uint32_t m;
@@ -421,7 +429,7 @@ hcrypt_mdsl (uint8_t * dst, uint8_t * src)
 
 /* Inversi dari MDS-L */
 void 
-hcrypt_imdsl (uint8_t * dst, uint8_t * src)
+imdsl (uint8_t * dst, uint8_t * src)
 {
     int32_t  i, j;
     uint32_t m;
@@ -438,7 +446,7 @@ hcrypt_imdsl (uint8_t * dst, uint8_t * src)
 }
 
 void 
-hcrypt_xs (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2)
+xs (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2)
 {
     uint8_t t[4], u[4];
     int32_t i;
@@ -449,7 +457,7 @@ hcrypt_xs (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2)
     for (i = 0; i < 4; i++)
         t[i] = SBox[u[i]];          /* S-Box  */
 
-    hcrypt_mdsl (u, t);             /* MDS_L */
+    mdsl (u, t);             /* MDS_L */
 
     for (i = 0; i < 4; i++)
         t[i] = u[i] ^ k2[i];        /* key XOR */
@@ -459,7 +467,7 @@ hcrypt_xs (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2)
 }
 
 void 
-hcrypt_ixs (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2)
+ixs (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2)
 {
     uint8_t t[4], u[4];
     int32_t i;
@@ -470,7 +478,7 @@ hcrypt_ixs (uint8_t * dst, uint8_t * src, uint8_t * k1, uint8_t * k2)
     for (i = 0; i < 4; i++)
         t[i] = ISBox[u[i]];         /* S-Box  */
 
-    hcrypt_imdsl (u, t);            /* MDS_L */
+    imdsl (u, t);            /* MDS_L */
 
     for (i = 0; i < 4; i++)
         t[i] = u[i] ^ k2[i];        /* key xOR */
@@ -526,7 +534,7 @@ mdsh_multiply (uint8_t * dst, uint8_t * src, uint32_t x)
 }
 
 void 
-hcrypt_mdsh (uint8_t dst[4][4], uint8_t src[4][4])
+mdsh (uint8_t dst[4][4], uint8_t src[4][4])
 {
     uint32_t i, j, k;
     uint8_t  tmp[4];
@@ -548,7 +556,7 @@ hcrypt_mdsh (uint8_t dst[4][4], uint8_t src[4][4])
 }
 
 void 
-hcrypt_imdsh(uint8_t dst[4][4], uint8_t src[4][4])
+imdsh(uint8_t dst[4][4], uint8_t src[4][4])
 {
     int32_t i, j, k;
     uint8_t tmp[4];
@@ -571,7 +579,7 @@ hcrypt_imdsh(uint8_t dst[4][4], uint8_t src[4][4])
 
 
 void 
-hcrypt_keyf (uint8_t * in, uint8_t * fout, uint8_t *fkey)
+keyf (uint8_t * in, uint8_t * fout, uint8_t *fkey)
 {
     int32_t i;
 
@@ -590,7 +598,7 @@ hcrypt_keyf (uint8_t * in, uint8_t * fout, uint8_t *fkey)
 }
 
 void 
-hcrypt_keyp (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index)
+keyp (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index)
 {
     int32_t i;
     uint8_t fout[8];
@@ -619,7 +627,7 @@ hcrypt_keyp (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index)
     for (i = 0; i < 4; i++)
         k[2][i + 4] ^= HConst[GIndex[index][1]][i];
 
-    hcrypt_keyf (&k[1][0], fout, &k[2][0]);
+    keyf (&k[1][0], fout, &k[2][0]);
 
     for (i = 0; i < 8; i++)
         k[0][i] ^= fout[i];         /* L xor f(R) */
@@ -652,13 +660,13 @@ hcrypt_keyp (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index)
 }
 
 void 
-hcrypt_keyc (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index)
+keyc (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index)
 {
     int32_t i;
     uint8_t fout[8];
 
     swap_key (&k[0][0], &k[1][0]);
-    hcrypt_keyf (&k[1][0], fout, &k[2][0]);
+    keyf (&k[1][0], fout, &k[2][0]);
 
     for (i = 0; i < 8; i++)
         k[0][i] ^= fout[i];
@@ -718,10 +726,10 @@ hcrypt_keyc (uint8_t kout[8][4], uint8_t k[4][8], uint32_t index)
 /* ************************ CONTOH PENGGUNAAN ************************ */
 /* Xor 2 block data */
 void 
-xor_block(char* dst, char * src1, char * src2)
+xor_block(uint8_t * dst, uint8_t * src1, uint8_t * src2)
 {
     register uint32_t i = 0;
-    for (i = 0; i < 16; i++)
+    for (i = 0; i < BLOCKSIZEB; i++)
         dst[i] = src1[i] ^ src2[i];
 }
 
@@ -734,17 +742,16 @@ xor_block(char* dst, char * src1, char * src2)
     Pastikan jumlah block valid.
 */
 void 
-hc3_encrypt_ecb(char* data, uint32_t length, char * key)
+hc3_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     hc3_t      config;
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
 
-    printf("Length: %d\n", length);
-    for (i = 0; i < length; i += 16)
-        hc3_encrypt(&config, &data[i]);
+    for (i = 0; i < length; i += BLOCKSIZEB)
+        block_encrypt(&config, &data[i]);
 }
 
 /*
@@ -754,16 +761,16 @@ hc3_encrypt_ecb(char* data, uint32_t length, char * key)
     Pastikan jumlah block valid.
 */
 void 
-hc3_decrypt_ecb(char* data, uint32_t length, char * key)
+hc3_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     hc3_t      config;
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
 
-    for(i = 0; i < length; i += 16)
-        hc3_decrypt(&config, &data[i]);
+    for(i = 0; i < length; i += BLOCKSIZEB)
+        block_decrypt(&config, &data[i]);
 }
 
 
@@ -773,24 +780,24 @@ hc3_decrypt_ecb(char* data, uint32_t length, char * key)
     Pastikan jumlah block valid.
 */
 void 
-hc3_encrypt_cbc(char* data, uint32_t length, char * key, char * iv)
+hc3_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
-    uint32_t   i;
     hc3_t      config;
-    char     * prev_block;
+    uint32_t   i;
+    uint8_t  * prev_block;
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
 
     prev_block = iv;
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // XOR block plaintext dengan block ciphertext sebelumnya
         xor_block(&data[i], &data[i], prev_block);
 
         // Enkripsi plaintext menjadi ciphertext
-        hc3_encrypt(&config, &data[i]);
+        block_encrypt(&config, &data[i]);
 
         // Simpan block ciphertext untuk operasi XOR selanjutnya
         prev_block = &data[i];
@@ -803,32 +810,32 @@ hc3_encrypt_cbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-hc3_decrypt_cbc(char* data, uint32_t length, char * key, char * iv)
+hc3_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
-    uint32_t   i;
     hc3_t      config;
-    char       prev_block[16];
-    char       cipher_block[16];
+    uint32_t   i;
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ctext_block[BLOCKSIZEB];
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan block ciphertext untuk operasi XOR berikutnya.
-        memcpy(cipher_block, &data[i], 16);
+        memcpy(ctext_block, &data[i], BLOCKSIZEB);
 
         // Dekripsi ciphertext menjadi block
-        hc3_decrypt(&config, &data[i]);
+        block_decrypt(&config, &data[i]);
 
         // XOR block block dengan block ciphertext sebelumnya
         // gunakan IV bila ini adalah block pertama
         xor_block(&data[i], &data[i], prev_block);
 
         // Pindahkan block ciphertext yang telah disimpan
-        memcpy(prev_block, cipher_block, 16);
+        memcpy(prev_block, ctext_block, BLOCKSIZEB);
     }
 }
 
@@ -838,28 +845,28 @@ hc3_decrypt_cbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-hc3_encrypt_cfb(char* data, uint32_t length, char * key, char * iv)
+hc3_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
-    uint32_t   i;
     hc3_t      config;
-    char       prev_block[16];
+    uint32_t   i;
+    uint8_t    prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
 
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya
         // gunakan IV bila ini block pertama
-        hc3_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR dengan plaintext untuk mendapatkan ciphertext
         xor_block(&data[i], &data[i], prev_block);
 
         // Simpan block ciphertext untuk operasi XOR berikutnya
-        memcpy(prev_block, &data[i], 16);
+        memcpy(prev_block, &data[i], BLOCKSIZEB);
     }
 }
 
@@ -868,32 +875,32 @@ hc3_encrypt_cfb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-hc3_decrypt_cfb(char* data, uint32_t length, char * key, char * iv)
+hc3_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
-    uint32_t   i;
     hc3_t      config;
-    char       prev_block[16];
-    char       cipher_block[16];
+    uint32_t   i;
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ctext_block[BLOCKSIZEB];
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
 
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan block cipher untuk operasi
-        memcpy(cipher_block, &data[i], 16);
+        memcpy(ctext_block, &data[i], BLOCKSIZEB);
 
         // Enkripsi block sebelumnya
         // gunakan IV bila ini block pertama
-        hc3_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR dengan plaintext untuk mendapatkan ciphertext
         xor_block(&data[i], &data[i], prev_block);
 
         // Simpan block ciphertext untuk operasi XOR berikutnya
-        memcpy(prev_block, cipher_block, 16);
+        memcpy(prev_block, ctext_block, BLOCKSIZEB);
     }
 }
 
@@ -902,22 +909,22 @@ hc3_decrypt_cfb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-hc3_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
+hc3_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
-    uint32_t   i;
     hc3_t      config;
-    char       local_nonce[16];
+    uint32_t   i;
+    uint8_t    local_nonce[BLOCKSIZEB];
     uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(local_nonce, nonce, 16);
+    memcpy(local_nonce, nonce, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi nonce + counter
-        hc3_encrypt(&config, local_nonce);
+        block_encrypt(&config, local_nonce);
 
         // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], local_nonce);
@@ -932,22 +939,22 @@ hc3_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
     Pastikan jumlah block valid.
 */
 void 
-hc3_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
+hc3_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
-    uint32_t   i;
     hc3_t      config;
-    char       local_nonce[16];
+    uint32_t   i;
+    uint8_t    local_nonce[BLOCKSIZEB];
     uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(local_nonce, nonce, 16);
+    memcpy(local_nonce, nonce, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi nonce + counter
-        hc3_encrypt(&config, local_nonce);
+        block_encrypt(&config, local_nonce);
 
         // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], local_nonce);
@@ -963,22 +970,22 @@ hc3_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
     Pastikan jumlah block valid.
 */
 void 
-hc3_encrypt_ofb(char* data, uint32_t length, char * key, char * iv)
+hc3_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
-    uint32_t   i;
     hc3_t      config;
-    char       prev_block[16];
+    uint32_t   i;
+    uint8_t    prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
     
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya 
         // gunakan IV bila ini block pertama
-        hc3_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], prev_block);
@@ -990,22 +997,22 @@ hc3_encrypt_ofb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-hc3_decrypt_ofb(char* data, uint32_t length, char * key, char * iv)
+hc3_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
-    uint32_t   i;
     hc3_t      config;
-    char       prev_block[16];
+    uint32_t   i;
+    uint8_t    prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
     
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya 
         // gunakan IV bila ini block pertama
-        hc3_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], prev_block);
@@ -1018,29 +1025,29 @@ hc3_decrypt_ofb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-hc3_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
+hc3_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
-    uint32_t   i;
     hc3_t      config;
-    char       prev_block[16];
-    char       ptext_block[16];
+    uint32_t   i;
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ptext_block[BLOCKSIZEB];
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan plaintext untuk dioperasikan dengan block berikutnya.
-        memcpy(ptext_block, &data[i], 16);
+        memcpy(ptext_block, &data[i], BLOCKSIZEB);
 
         // XOR plaintext dengan block sebelumnya
         // gunakan IV bila ini block pertama
         xor_block(&data[i], &data[i], prev_block);
 
         // Enkripsi
-        hc3_encrypt(&config, &data[i]);
+        block_encrypt(&config, &data[i]);
 
         // Hitung block berikutnya
         xor_block(prev_block, ptext_block, &data[i]);
@@ -1052,25 +1059,25 @@ hc3_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-hc3_decrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
+hc3_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
-    uint32_t   i;
     hc3_t      config;
-    char       prev_block[16];
-    char       ctext_block[16];
+    uint32_t   i;
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ctext_block[BLOCKSIZEB];
 
     // Setup configuration
-    hc3_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan ciphertext untuk dioperasikan dengan block berikutnya.
-        memcpy(ctext_block, &data[i], 16);
+        memcpy(ctext_block, &data[i], BLOCKSIZEB);
 
         // Dekripsi ciphertext untuk mendapatkan plaintext ter-XOR
-        hc3_decrypt(&config, &data[i]);
+        block_decrypt(&config, &data[i]);
 
         // XOR dengan block sebelumnya
         // gunakan IV bila ini block pertama
@@ -1117,7 +1124,7 @@ int main(int argc, char* argv[])
               0x25, 0x3F, 0x41, 0x4D };
 
     length = strlen(data);
-    printf("Length: %d - Buffer: %s\n", strlen(data), data);
+    printf("Length: %zd - Buffer: %s\n", strlen(data), data);
     printx("Original", data, length);
 
     /*

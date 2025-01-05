@@ -3,12 +3,16 @@
     Archive of Reversing.ID
     Block Cipher
 
-    Assemble:
-        (gcc)
-        $ gcc -m32 -S -masm=intel -o SAFER.asm SAFER.c
+Compile:
+    (msvc)
+    $ cl code.c
 
-        (msvc)
-        $ cl /c /FaBBS.asm SAFER.c
+Assemble:
+    (gcc)
+    $ gcc -m32 -S -masm=intel -o code.asm code.c
+
+    (msvc)
+    $ cl /c /FaBBS.asm code.c
 */
 #include <stdint.h>
 #include <string.h>
@@ -250,7 +254,8 @@ block_decrypt(safer_t * config, uint8_t data[BLOCKSIZEB])
 
 
 /* ******************* INTERNAL FUNCTIONS IMPLEMENTATION ******************* */
-void key_setup (safer_t * config, uint8_t * key, const uint32_t length)
+void 
+key_setup (safer_t * config, uint8_t * key, const uint32_t length)
 {
     uint32_t    blk[9];             // at least 33 bytes
     uint8_t     by;
@@ -304,7 +309,8 @@ void key_setup (safer_t * config, uint8_t * key, const uint32_t length)
     }
 }
 
-void do_fr (uint8_t val[BLOCKSIZEB], uint8_t * kp)
+void 
+do_fr (uint8_t val[BLOCKSIZEB], uint8_t * kp)
 {
     uint8_t t;
 
@@ -384,7 +390,8 @@ void do_fr (uint8_t val[BLOCKSIZEB], uint8_t * kp)
         val[ 3] = t;
 }
 
-void do_ir (uint8_t val[BLOCKSIZEB], uint8_t * kp)
+void 
+do_ir (uint8_t val[BLOCKSIZEB], uint8_t * kp)
 {
     uint8_t  t;
 

@@ -3,12 +3,16 @@
     Archive of Reversing.ID
     Block Cipher
 
-    Assemble:
-        (gcc)
-        $ gcc -m32 -S -masm=intel -o XXTEA.asm XXTEA.c
+Compile:
+    (msvc)
+    $ cl code.c
 
-        (msvc)
-        $ cl /c /FaBBS.asm XXTEA.c
+Assemble:
+    (gcc)
+    $ gcc -m32 -S -masm=intel -o code.asm code.c
+
+    (msvc)
+    $ cl /c /FaBBS.asm code.c
 */
 #include <stdint.h>
 
@@ -16,6 +20,8 @@
 
 
 /* ********************* INTERNAL FUNCTIONS PROTOTYPE ********************* */
+void block_encrypt (uint32_t * val, uint32_t N, uint32_t key[4]);
+void block_decrypt (uint32_t * val, uint32_t N, uint32_t key[4]);
 
 
 /* ********************* MODE OF OPERATIONS PROTOTYPE ********************* */
@@ -28,7 +34,7 @@
     Sebuah block adalah 2 buah bilangan 32-bit atau setara dengan 64-bit data.
 */
 void 
-xxtea_encrypt(uint32_t * val, uint32_t N, uint32_t key[4])
+block_encrypt(uint32_t * val, uint32_t N, uint32_t key[4])
 {
     uint32_t y, z, i;
     uint32_t k0 = key[0], k1 = key[1], k2 = key[2], k3 = key[3];
@@ -60,7 +66,7 @@ xxtea_encrypt(uint32_t * val, uint32_t N, uint32_t key[4])
     Sebuah block adalah 2 buah bilangan 32-bit atau setara dengan 64-bit data.
 */
 void 
-xxtea_decrypt(uint32_t * val, uint32_t N, uint32_t key[4])
+block_decrypt(uint32_t * val, uint32_t N, uint32_t key[4])
 {
     uint32_t y, z, i;
     uint32_t k0 = key[0], k1 = key[1], k2 = key[2], k3 = key[3];
@@ -129,12 +135,12 @@ int main(int argc, char* argv[])
 
     // Enkripsi
     memcpy(encbuffer, data, length);
-    xxtea_encrypt((uint32_t*)encbuffer, 16, key);
+    block_encrypt((uint32_t*)encbuffer, 16, key);
     printx("Encrypted:", encbuffer, 64);
 
     // Dekripsi
     memcpy(decbuffer, encbuffer, 64);
-    xxtea_decrypt((uint32_t*)decbuffer, 16, key);
+    block_decrypt((uint32_t*)decbuffer, 16, key);
     printx("Decrypted:", decbuffer, 64);
 
     printf("\nFinal: %s\n", decbuffer);

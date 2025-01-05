@@ -3,26 +3,31 @@
     Archive of Reversing.ID
     Block Cipher
 
-    Assemble:
-        (gcc)
-        $ gcc -m32 -S -masm=intel -o Anubis.asm Anubis.c
+Compile:
+    (msvc)
+    $ cl code.c
 
-        (msvc)
-        $ cl /c /FaBBS.asm Anubis.c
+Assemble:
+    (gcc)
+    $ gcc -m32 -S -masm=intel -o code.asm code.c
+
+    (msvc)
+    $ cl /c /FaBBS.asm code.c
 */
 #include <stdint.h>
 #include <string.h>
 
 /* ************************* CONFIGURATION & SEED ************************* */
+#define BLOCKSIZE       128
+#define BLOCKSIZEB      16
+#define KEYSIZE         128
+#define KEYSIZEB        16
 #define MIN_N           4
 #define MAX_N           10
 #define MIN_ROUNDS      (8 + MIN_N)
 #define MAX_ROUNDS      (8 + MAX_N)
 #define MIN_KEYSIZEB    (4 * MIN_N)
 #define MAX_KEYSIZEB    (4 * MAX_N)
-#define BLOCKSIZE       128
-#define BLOCKSIZEB      (BLOCKSIZE/8)
-#define KEYSIZEB        16
 
 /** Lookup Table **/
 static const uint32_t T0[256] = {
@@ -439,7 +444,7 @@ static const uint32_t rc[] = {
 /* context and configuration */
 typedef struct 
 {
-    uint32_t bits;      /* field ini harus diinisialiasi sebelum setup dipanggil */
+    uint32_t bits;          // inisialisasi sebelum key_setup
     uint32_t R;
     uint32_t rkeys_enc[MAX_ROUNDS + 1][4];
     uint32_t rkeys_dec[MAX_ROUNDS + 1][4];
@@ -447,53 +452,56 @@ typedef struct
 
 
 /* ********************* INTERNAL FUNCTIONS PROTOTYPE ********************* */
-void anubis_crypt(uint8_t val[16], const uint32_t rkeys[MAX_ROUNDS + 1][4], int R);
-void anubis_setup(anubis_t * config, uint8_t * secret);
+void block_encrypt(anubis_t * config, uint8_t val[BLOCKSIZEB]);
+void block_decrypt(anubis_t * config, uint8_t val[BLOCKSIZEB]);
+void key_setup(anubis_t * config, uint8_t * secret, uint32_t bits);
+
+void anubis_crypt(uint8_t val[BLOCKSIZEB], const uint32_t rkeys[MAX_ROUNDS + 1][4], int R);
 
 
 /* ********************* MODE OF OPERATIONS PROTOTYPE ********************* */
 /** Electronic Code Book mode **/
-void anubis_encrypt_ecb(char* data, uint32_t length, char * key);
-void anubis_decrypt_ecb(char* data, uint32_t length, char * key);
+void anubis_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
+void anubis_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
 
 /** Cipher Block Chaining mode **/
-void anubis_encrypt_cbc(char* data, uint32_t length, char * key, char * iv);
-void anubis_decrypt_cbc(char* data, uint32_t length, char * key, char * iv);
+void anubis_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void anubis_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Cipher Feedback mode **/
-void anubis_encrypt_cfb(char* data, uint32_t length, char * key, char * iv);
-void anubis_decrypt_cfb(char* data, uint32_t length, char * key, char * iv);
+void anubis_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void anubis_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Counter mode **/
-void anubis_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce);
-void anubis_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce);
+void anubis_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
+void anubis_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
 
 /** Output Feedback mode **/
-void anubis_encrypt_ofb(char* data, uint32_t length, char * key, char * iv);
-void anubis_decrypt_ofb(char* data, uint32_t length, char * key, char * iv);
+void anubis_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void anubis_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Propagating Cipher Block Chaining mode **/
-void anubis_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv);
-void anubis_decrypt_pcbc(char* data, uint32_t length, char * key, char * iv);
+void anubis_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void anubis_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 
 /* ************************ CRYPTOGRAPHY ALGORITHM ************************ */
 /* 
     Enkripsi sebuah block dengan Anubis. 
-    Pastikan konfigurasi telah dilakukan dengan memanggil anubis_setup()
+    Pastikan konfigurasi telah dilakukan dengan memanggil key_setup()
 */
 void 
-anubis_encrypt(anubis_t * config, uint8_t val[16])
+block_encrypt(anubis_t * config, uint8_t val[BLOCKSIZEB])
 {
     anubis_crypt(val, config->rkeys_enc, config->R);
 }
 
 /* 
     Dekripsi sebuah block dengan Anubis. 
-    Pastikan konfigurasi telah dilakukan dengan memanggil anubis_setup()
+    Pastikan konfigurasi telah dilakukan dengan memanggil key_setup()
 */
 void 
-anubis_decrypt(anubis_t * config, uint8_t val[16])
+block_decrypt(anubis_t * config, uint8_t val[BLOCKSIZEB])
 {
     anubis_crypt(val, config->rkeys_dec, config->R);
 }
@@ -502,7 +510,7 @@ anubis_decrypt(anubis_t * config, uint8_t val[16])
 /* ******************* INTERNAL FUNCTIONS IMPLEMENTATION ******************* */
 /* Fungsi utama untuk melakukan enkripsi / dekripsi block data. */
 void 
-anubis_crypt(uint8_t val[16], const uint32_t rkeys[MAX_ROUNDS + 1][4], int R)
+anubis_crypt(uint8_t val[BLOCKSIZEB], const uint32_t rkeys[MAX_ROUNDS + 1][4], int R)
 {
     int i, pos, r;
     uint32_t state[4];
@@ -591,15 +599,16 @@ anubis_crypt(uint8_t val[16], const uint32_t rkeys[MAX_ROUNDS + 1][4], int R)
     }
 }
 
-/* Turunkan round-key dari secret key */
+
+/* ******************* INTERNAL FUNCTIONS IMPLEMENTATION ******************* */
 void 
-anubis_setup(anubis_t * config, uint8_t * secret)
+key_setup(anubis_t * config, uint8_t * secret, uint32_t bits)
 {
     int N, R, i, pos, r;
     uint32_t kappa[MAX_N];
     uint32_t inter[MAX_N];
 
-    config->bits = KEYSIZEB * 8;
+    config->bits = bits;
 
     /* tentukan parameter N */
     N = config->bits >> 5;
@@ -697,10 +706,10 @@ anubis_setup(anubis_t * config, uint8_t * secret)
 /* *************************** HELPER FUNCTIONS *************************** */
 /* Xor 2 block data */
 void 
-xor_block(char* dst, char * src1, char * src2)
+xor_block(uint8_t* dst, const uint8_t * src1, const uint8_t * src2)
 {
     register uint32_t i = 0;
-    for (i = 0; i < 16; i++)
+    for (i = 0; i < BLOCKSIZEB; i++)
         dst[i] = src1[i] ^ src2[i];
 }
 
@@ -713,17 +722,16 @@ xor_block(char* dst, char * src1, char * src2)
     Pastikan jumlah block valid.
 */
 void 
-anubis_encrypt_ecb(char* data, uint32_t length, char * key)
+anubis_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     anubis_t   config;
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
 
-    for (i = 0; i < length; i += 16)
-        anubis_encrypt(&config, &data[i]);
+    for (i = 0; i < length; i += BLOCKSIZEB)
+        block_encrypt(&config, &data[i]);
 }
 
 /*
@@ -733,17 +741,16 @@ anubis_encrypt_ecb(char* data, uint32_t length, char * key)
     Pastikan jumlah block valid.
 */
 void 
-anubis_decrypt_ecb(char* data, uint32_t length, char * key)
+anubis_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     anubis_t   config;
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
 
-    for(i = 0; i < length; i += 16)
-        anubis_decrypt(&config, &data[i]);
+    for(i = 0; i < length; i += BLOCKSIZEB)
+        block_decrypt(&config, &data[i]);
 }
 
 
@@ -753,25 +760,22 @@ anubis_decrypt_ecb(char* data, uint32_t length, char * key)
     Pastikan jumlah block valid.
 */
 void 
-anubis_encrypt_cbc(char* data, uint32_t length, char * key, char * iv)
+anubis_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     anubis_t   config;
-    char     * prev_block;
+    uint8_t  * prev_block = iv;
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
 
-    prev_block = iv;
-
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // XOR block plaintext dengan block ciphertext sebelumnya
         xor_block(&data[i], &data[i], prev_block);
 
         // Enkripsi plaintext menjadi ciphertext
-        anubis_encrypt(&config, &data[i]);
+        block_encrypt(&config, &data[i]);
 
         // Simpan block ciphertext untuk operasi XOR selanjutnya
         prev_block = &data[i];
@@ -784,33 +788,32 @@ anubis_encrypt_cbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-anubis_decrypt_cbc(char* data, uint32_t length, char * key, char * iv)
+anubis_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     anubis_t   config;
-    char       prev_block[16];
-    char       cipher_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ctext_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan block ciphertext untuk operasi XOR berikutnya.
-        memcpy(cipher_block, &data[i], 16);
+        memcpy(ctext_block, &data[i], BLOCKSIZEB);
 
         // Dekripsi ciphertext menjadi block
-        anubis_decrypt(&config, &data[i]);
+        block_decrypt(&config, &data[i]);
 
         // XOR block block dengan block ciphertext sebelumnya
         // gunakan IV bila ini adalah block pertama
         xor_block(&data[i], &data[i], prev_block);
 
         // Pindahkan block ciphertext yang telah disimpan
-        memcpy(prev_block, cipher_block, 16);
+        memcpy(prev_block, ctext_block, BLOCKSIZEB);
     }
 }
 
@@ -820,29 +823,28 @@ anubis_decrypt_cbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-anubis_encrypt_cfb(char* data, uint32_t length, char * key, char * iv)
+anubis_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     anubis_t   config;
-    char       prev_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
 
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya
         // gunakan IV bila ini block pertama
-        anubis_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR dengan plaintext untuk mendapatkan ciphertext
         xor_block(&data[i], &data[i], prev_block);
 
         // Simpan block ciphertext untuk operasi XOR berikutnya
-        memcpy(prev_block, &data[i], 16);
+        memcpy(prev_block, &data[i], BLOCKSIZEB);
     }
 }
 
@@ -851,33 +853,32 @@ anubis_encrypt_cfb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-anubis_decrypt_cfb(char* data, uint32_t length, char * key, char * iv)
+anubis_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     anubis_t   config;
-    char       prev_block[16];
-    char       cipher_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ctext_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
 
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan block cipher untuk operasi
-        memcpy(cipher_block, &data[i], 16);
+        memcpy(ctext_block, &data[i], BLOCKSIZEB);
 
         // Enkripsi block sebelumnya
         // gunakan IV bila ini block pertama
-        anubis_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR dengan plaintext untuk mendapatkan ciphertext
         xor_block(&data[i], &data[i], prev_block);
 
         // Simpan block ciphertext untuk operasi XOR berikutnya
-        memcpy(prev_block, cipher_block, 16);
+        memcpy(prev_block, ctext_block, BLOCKSIZEB);
     }
 }
 
@@ -886,23 +887,22 @@ anubis_decrypt_cfb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-anubis_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
+anubis_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
     uint32_t   i;
     anubis_t   config;
-    char       local_nonce[16];
+    uint8_t    local_nonce[BLOCKSIZEB];
     uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(local_nonce, nonce, 16);
+    memcpy(local_nonce, nonce, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi nonce + counter
-        anubis_encrypt(&config, local_nonce);
+        block_encrypt(&config, local_nonce);
 
         // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], local_nonce);
@@ -917,23 +917,22 @@ anubis_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
     Pastikan jumlah block valid.
 */
 void 
-anubis_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
+anubis_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
     uint32_t   i;
     anubis_t   config;
-    char       local_nonce[16];
+    uint8_t    local_nonce[BLOCKSIZEB];
     uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(local_nonce, nonce, 16);
+    memcpy(local_nonce, nonce, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi nonce + counter
-        anubis_encrypt(&config, local_nonce);
+        block_encrypt(&config, local_nonce);
 
         // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], local_nonce);
@@ -949,23 +948,22 @@ anubis_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
     Pastikan jumlah block valid.
 */
 void 
-anubis_encrypt_ofb(char* data, uint32_t length, char * key, char * iv)
+anubis_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     anubis_t   config;
-    char       prev_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
     
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya 
         // gunakan IV bila ini block pertama
-        anubis_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], prev_block);
@@ -977,23 +975,22 @@ anubis_encrypt_ofb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-anubis_decrypt_ofb(char* data, uint32_t length, char * key, char * iv)
+anubis_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     anubis_t   config;
-    char       prev_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
     
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya 
         // gunakan IV bila ini block pertama
-        anubis_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], prev_block);
@@ -1006,30 +1003,29 @@ anubis_decrypt_ofb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-anubis_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
+anubis_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     anubis_t   config;
-    char       prev_block[16];
-    char       ptext_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ptext_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan plaintext untuk dioperasikan dengan block berikutnya.
-        memcpy(ptext_block, &data[i], 16);
+        memcpy(ptext_block, &data[i], BLOCKSIZEB);
 
         // XOR plaintext dengan block sebelumnya
         // gunakan IV bila ini block pertama
         xor_block(&data[i], &data[i], prev_block);
 
         // Enkripsi
-        anubis_encrypt(&config, &data[i]);
+        block_encrypt(&config, &data[i]);
 
         // Hitung block berikutnya
         xor_block(prev_block, ptext_block, &data[i]);
@@ -1041,26 +1037,25 @@ anubis_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-anubis_decrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
+anubis_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     anubis_t   config;
-    char       prev_block[16];
-    char       ctext_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ctext_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    anubis_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan ciphertext untuk dioperasikan dengan block berikutnya.
-        memcpy(ctext_block, &data[i], 16);
+        memcpy(ctext_block, &data[i], BLOCKSIZEB);
 
         // Dekripsi ciphertext untuk mendapatkan plaintext ter-XOR
-        anubis_decrypt(&config, &data[i]);
+        block_decrypt(&config, &data[i]);
 
         // XOR dengan block sebelumnya
         // gunakan IV bila ini block pertama
@@ -1107,7 +1102,7 @@ int main(int argc, char* argv[])
               0x25, 0x3F, 0x41, 0x4D };
 
     length = strlen(data);
-    printf("Length: %d - Buffer: %s\n", strlen(data), data);
+    printf("Length: %zd - Buffer: %s\n", strlen(data), data);
     printx("Original", data, length);
 
     /*

@@ -3,17 +3,26 @@
     Archive of Reversing.ID
     Block Cipher
 
-    Assemble:
-        (gcc)
-        $ gcc -m32 -S -masm=intel -o CLEFIA.asm CLEFIA.c
+Compile:
+    (msvc)
+    $ cl code.c
 
-        (msvc)
-        $ cl /c /FaBBS.asm CLEFIA.c
+Assemble:
+    (gcc)
+    $ gcc -m32 -S -masm=intel -o code.asm code.c
+
+    (msvc)
+    $ cl /c /FaBBS.asm code.c
 */
 #include <stdint.h>
 #include <string.h>
 
 /* ************************ CONFIGURATION & SEED ************************ */
+#define BLOCKSIZE   128
+#define BLOCKSIZEB  16
+#define KEYSIZE     128
+#define KEYSIZEB    16
+
 #define clefia_mul4(x)  (clefia_mul2(clefia_mul2((x))))
 #define clefia_mul6(x)  (clefia_mul2((x)) ^ clefia_mul4((x)))
 #define clefia_mul8(x)  (clefia_mul2(clefia_mul4((x))))
@@ -102,8 +111,10 @@ typedef struct
 
 
 /* ********************* INTERNAL FUNCTIONS PROTOTYPE ********************* */
-void byte_copy(uint8_t *dst, const uint8_t * src, uint32_t bytelen);
-void byte_copy(uint8_t *dst, const uint8_t * src, uint32_t bytelen);
+void block_encrypt(clefia_t * config, uint8_t val[BLOCKSIZEB]);
+void block_decrypt(clefia_t * config, uint8_t val[BLOCKSIZEB]);
+int32_t key_setup(clefia_t * config, const uint8_t * skey, uint32_t bits);
+
 void byte_xor(uint8_t * dst, const uint8_t * a, const uint8_t * b, uint32_t bytelen);
 
 uint8_t clefia_mul2(uint8_t x);
@@ -118,42 +129,42 @@ void clefia_con_set(uint8_t * con, const uint8_t * iv, int32_t lk);
 
 /* ********************* MODE OF OPERATIONS PROTOTYPE ********************* */
 /** Electronic Code Book mode **/
-void clefia_encrypt_ecb(char* data, uint32_t length, char * key);
-void clefia_decrypt_ecb(char* data, uint32_t length, char * key);
+void clefia_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
+void clefia_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
 
 /** Cipher Block Chaining mode **/
-void clefia_encrypt_cbc(char* data, uint32_t length, char * key, char * iv);
-void clefia_decrypt_cbc(char* data, uint32_t length, char * key, char * iv);
+void clefia_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void clefia_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Cipher Feedback mode **/
-void clefia_encrypt_cfb(char* data, uint32_t length, char * key, char * iv);
-void clefia_decrypt_cfb(char* data, uint32_t length, char * key, char * iv);
+void clefia_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void clefia_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Counter mode **/
-void clefia_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce);
-void clefia_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce);
+void clefia_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
+void clefia_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
 
 /** Output Feedback mode **/
-void clefia_encrypt_ofb(char* data, uint32_t length, char * key, char * iv);
-void clefia_decrypt_ofb(char* data, uint32_t length, char * key, char * iv);
+void clefia_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void clefia_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Propagating Cipher Block Chaining mode **/
-void clefia_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv);
-void clefia_decrypt_pcbc(char* data, uint32_t length, char * key, char * iv);
+void clefia_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void clefia_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 
 /* ************************ CRYPTOGRAPHY ALGORITHM ************************ */
 /* 
     Enkripsi sebuah block dengan CLEFIA. 
-    Pastikan konfigurasi telah dilakukan dengan memanggil clefia_setup()
+    Pastikan konfigurasi telah dilakukan dengan memanggil key_setup()
 */
 void 
-clefia_encrypt(clefia_t * config, uint8_t val[16])
+block_encrypt(clefia_t * config, uint8_t val[BLOCKSIZEB])
 {
-    uint8_t   rin[16], rout[16];
+    uint8_t   rin[BLOCKSIZEB], rout[BLOCKSIZEB];
     uint8_t * rkeys = config->rkeys;
 
-    byte_copy(rin, val, 16);
+    memcpy(rin, val, BLOCKSIZEB);
 
     byte_xor(rin +  4, rin +  4, rkeys    , 4);                     /* initial key whitening */
     byte_xor(rin + 12, rin + 12, rkeys + 4, 4);
@@ -161,7 +172,7 @@ clefia_encrypt(clefia_t * config, uint8_t val[16])
 
     clefia_gfn4(rout, rin, rkeys, config->round);                   /* GFN_{4, r} */
 
-    byte_copy(val, rout, 16);
+    memcpy(val, rout, BLOCKSIZEB);
 
     byte_xor(val +  4, val +  4, rkeys + config->round * 8    , 4); /* final key whitening */
     byte_xor(val + 12, val + 12, rkeys + config->round * 8 + 4, 4);
@@ -169,15 +180,15 @@ clefia_encrypt(clefia_t * config, uint8_t val[16])
 
 /* 
     Dekripsi sebuah block dengan CLEFIA. 
-    Pastikan konfigurasi telah dilakukan dengan memanggil clefia_setup()
+    Pastikan konfigurasi telah dilakukan dengan memanggil key_setup()
 */
 void 
-clefia_decrypt(clefia_t * config, uint8_t val[16])
+block_decrypt(clefia_t * config, uint8_t val[BLOCKSIZEB])
 {
-    uint8_t   rin[16], rout[16];
+    uint8_t   rin[BLOCKSIZEB], rout[BLOCKSIZEB];
     uint8_t * rkeys = config->rkeys;
 
-    byte_copy(rin, val, 16);
+    memcpy(rin, val, BLOCKSIZEB);
 
     byte_xor(rin +  4, rin +  4, rkeys + config->round * 8 +  8, 4);    /* initial key whitening */
     byte_xor(rin + 12, rin + 12, rkeys + config->round * 8 + 12, 4);
@@ -185,7 +196,7 @@ clefia_decrypt(clefia_t * config, uint8_t val[16])
 
     clefia_gfn4_inv(rout, rin, rkeys, config->round);                   /* GFN_{4, r} */
 
-    byte_copy(val, rout, 16);
+    memcpy(val, rout, BLOCKSIZEB);
 
     byte_xor(val +  4, val +  4, rkeys - 8, 4);                     /* final key whitening */
     byte_xor(val + 12, val + 12, rkeys - 4, 4);
@@ -193,13 +204,6 @@ clefia_decrypt(clefia_t * config, uint8_t val[16])
 
 
 /* ******************* INTERNAL FUNCTIONS IMPLEMENTATION ******************* */
-/* Salin data byte per byte */
-void 
-byte_copy(uint8_t *dst, const uint8_t * src, uint32_t bytelen)
-{
-    while (bytelen--) *dst++ = *src++;
-}
-
 /* XOR 2 block data dengan panjang sembarang */
 void 
 byte_xor(uint8_t * dst, const uint8_t * a, const uint8_t * b, uint32_t bytelen)
@@ -237,7 +241,7 @@ clefia_f0_xor(uint8_t * dst, const uint8_t * src, const uint8_t * rk)
     y[3] = clefia_mul6(z[0]) ^ clefia_mul4(z[1]) ^ clefia_mul2(z[2]) ^             z[3]; 
 
     /* xor setelah F0 */
-    byte_copy(dst, src, 4);
+    memcpy(dst, src, 4);
     byte_xor(dst + 4, src + 4, y, 4);
 }
 
@@ -264,7 +268,7 @@ clefia_f1_xor(uint8_t * dst, const uint8_t * src, const uint8_t * rk)
     y[3] = clefia_mulA(z[0]) ^ clefia_mul2(z[1]) ^ clefia_mul8(z[2]) ^             z[3]; 
 
     /* xor setelah F0 */
-    byte_copy(dst, src, 4);
+    memcpy(dst, src, 4);
     byte_xor(dst + 4, src + 4, y, 4);
 }
 
@@ -272,9 +276,9 @@ clefia_f1_xor(uint8_t * dst, const uint8_t * src, const uint8_t * rk)
 void 
 clefia_gfn4(uint8_t * y, const uint8_t * x, const uint8_t * rk, int32_t round)
 {
-    uint8_t fin[16], fout[16];
+    uint8_t fin[BLOCKSIZEB], fout[BLOCKSIZEB];
 
-    byte_copy(fin, x, 16);
+    memcpy(fin, x, 16);
 
     while (round--)
     {
@@ -285,11 +289,11 @@ clefia_gfn4(uint8_t * y, const uint8_t * x, const uint8_t * rk, int32_t round)
 
         if (round)
         {
-            byte_copy(fin     , fout + 4, 12);
-            byte_copy(fin + 12, fout    , 4);
+            memcpy(fin     , fout + 4, 12);
+            memcpy(fin + 12, fout    , 4);
         }
     }
-    byte_copy(y, fout, 16);
+    memcpy(y, fout, 16);
 }
 
 void 
@@ -297,7 +301,7 @@ clefia_gfn8(uint8_t * y, const uint8_t * x, const uint8_t * rk, int32_t round)
 {
     uint8_t fin[32], fout[32];
 
-    byte_copy(fin, x, 32);
+    memcpy(fin, x, 32);
 
     while (round--)
     {
@@ -308,20 +312,20 @@ clefia_gfn8(uint8_t * y, const uint8_t * x, const uint8_t * rk, int32_t round)
 
         if (round)
         {
-            byte_copy(fin     , fout + 4, 12);
-            byte_copy(fin + 12, fout    , 4);
+            memcpy(fin     , fout + 4, 12);
+            memcpy(fin + 12, fout    , 4);
         }
     }
-    byte_copy(y, fout, 16);
+    memcpy(y, fout, 16);
 }
 
 void 
 clefia_gfn4_inv(uint8_t * y, const uint8_t * x, const uint8_t * rk, int32_t round)
 {
-    uint8_t fin[16], fout[16];
+    uint8_t fin[BLOCKSIZEB], fout[BLOCKSIZEB];
 
     rk += (round - 1) * 8;
-    byte_copy(fin, x, 16);
+    memcpy(fin, x, 16);
     while (round--)
     {
         clefia_f0_xor(fout    , fin    , rk    );
@@ -331,17 +335,17 @@ clefia_gfn4_inv(uint8_t * y, const uint8_t * x, const uint8_t * rk, int32_t roun
 
         if (round)
         {
-            byte_copy(fin    , fout + 12,  4);
-            byte_copy(fin + 4, fout     , 12);
+            memcpy(fin    , fout + 12,  4);
+            memcpy(fin + 4, fout     , 12);
         }
     }
-    byte_copy(y, fout, 16);
+    memcpy(y, fout, 16);
 }
 
 void 
 clefia_double_swap(uint8_t * lk)
 {
-    uint8_t t[16];
+    uint8_t t[BLOCKSIZEB];
 
     t[0] = (lk[0] << 7) | (lk[1]  >> 1);
     t[1] = (lk[1] << 7) | (lk[2]  >> 1);
@@ -361,7 +365,7 @@ clefia_double_swap(uint8_t * lk)
     t[14] = (lk[14] >> 7) | (lk[13] << 1); 
     t[15] = (lk[15] >> 7) | (lk[14] << 1); 
 
-    byte_copy(lk, t, 16);
+    memcpy(lk, t, 16);
 }
 
 void 
@@ -370,7 +374,7 @@ clefia_con_set(uint8_t * con, const uint8_t * iv, int32_t lk)
     uint8_t t[2];
     uint8_t tmp;
 
-    byte_copy(t, iv, 2);
+    memcpy(t, iv, 2);
     while(lk--)
     {
         con[0] = t[0] ^ 0xB7U;      /* P_16 = 0xb7e1 (natural logarithm) */
@@ -403,7 +407,7 @@ void
 clefia_key_set_128(uint8_t * rkeys, const uint8_t * skey)
 {
     const uint8_t iv[2] = { 0x42U, 0x8AU };    /* akar pangkat tiga dari 2 */
-    uint8_t lk[16];
+    uint8_t lk[BLOCKSIZEB];
     uint8_t con128[4 * 60];
     int32_t i;
 
@@ -413,7 +417,7 @@ clefia_key_set_128(uint8_t * rkeys, const uint8_t * skey)
     /* GFN_{4,12} (generating L from K) */
     clefia_gfn4(lk, skey, con128, 12);
 
-    byte_copy(rkeys, skey, 8);         /* initial whitening key (WK0, WK1) */
+    memcpy(rkeys, skey, 8);         /* initial whitening key (WK0, WK1) */
     rkeys += 8;
     for(i = 0; i < 9; i++)
     { 
@@ -425,7 +429,7 @@ clefia_key_set_128(uint8_t * rkeys, const uint8_t * skey)
         clefia_double_swap(lk);     /* Updating L (DoubleSwap function) */
         rkeys += 16;
     }
-    byte_copy(rkeys, skey + 8, 8); /* final whitening key (WK2, WK3) */
+    memcpy(rkeys, skey + 8, 8); /* final whitening key (WK2, WK3) */
 }
 
 void 
@@ -437,7 +441,7 @@ clefia_key_set_192(uint8_t * rkeys, const uint8_t * skey)
     uint8_t con192[4 * 84];
     int32_t i;
 
-    byte_copy(skey256, skey, 24);
+    memcpy(skey256, skey, 24);
     for(i = 0; i < 8; i++)
         skey256[i + 24] = ~skey[i];
 
@@ -514,8 +518,9 @@ clefia_key_set_256(uint8_t * rkeys, const uint8_t * skey)
 }
 
 int32_t 
-clefia_setup(clefia_t * config, const uint8_t * skey)
+key_setup(clefia_t * config, const uint8_t * skey, uint32_t bits)
 {
+    config->bits = bits;
     switch (config->bits)
     {
         case 128:
@@ -541,10 +546,11 @@ clefia_setup(clefia_t * config, const uint8_t * skey)
 /* *************************** HELPER FUNCTIONS *************************** */
 /* Xor 2 block data */
 void 
-xor_block(char * dst, char * src1, char * src2)
+xor_block(uint8_t * dst, uint8_t * src1, uint8_t * src2)
 {
-    byte_xor(dst, src1, src2, 16);
+    byte_xor(dst, src1, src2, BLOCKSIZEB);
 }
+
 
 /* ******************* MODE OF OPERATIONS IMPLEMENTATION ******************* */
 /*
@@ -554,17 +560,16 @@ xor_block(char * dst, char * src1, char * src2)
     Pastikan jumlah block valid.
 */
 void 
-clefia_encrypt_ecb(char* data, uint32_t length, char * key)
+clefia_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     clefia_t   config;
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
 
-    for (i = 0; i < length; i += 16)
-        clefia_encrypt(&config, &data[i]);
+    for (i = 0; i < length; i += BLOCKSIZEB)
+        block_encrypt(&config, &data[i]);
 }
 
 /*
@@ -574,17 +579,16 @@ clefia_encrypt_ecb(char* data, uint32_t length, char * key)
     Pastikan jumlah block valid.
 */
 void 
-clefia_decrypt_ecb(char* data, uint32_t length, char * key)
+clefia_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     clefia_t   config;
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
 
-    for(i = 0; i < length; i += 16)
-        clefia_decrypt(&config, &data[i]);
+    for(i = 0; i < length; i += BLOCKSIZEB)
+        block_decrypt(&config, &data[i]);
 }
 
 
@@ -594,25 +598,22 @@ clefia_decrypt_ecb(char* data, uint32_t length, char * key)
     Pastikan jumlah block valid.
 */
 void 
-clefia_encrypt_cbc(char* data, uint32_t length, char * key, char * iv)
+clefia_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     clefia_t   config;
-    char     * prev_block;
+    uint8_t  * prev_block = iv;
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
 
-    prev_block = iv;
-
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // XOR block plaintext dengan block ciphertext sebelumnya
         xor_block(&data[i], &data[i], prev_block);
 
         // Enkripsi plaintext menjadi ciphertext
-        clefia_encrypt(&config, &data[i]);
+        block_encrypt(&config, &data[i]);
 
         // Simpan block ciphertext untuk operasi XOR selanjutnya
         prev_block = &data[i];
@@ -625,33 +626,32 @@ clefia_encrypt_cbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-clefia_decrypt_cbc(char* data, uint32_t length, char * key, char * iv)
+clefia_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     clefia_t   config;
-    char       prev_block[16];
-    char       cipher_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    cipher_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
     memcpy(prev_block, iv, 16);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan block ciphertext untuk operasi XOR berikutnya.
-        memcpy(cipher_block, &data[i], 16);
+        memcpy(cipher_block, &data[i], BLOCKSIZEB);
 
         // Dekripsi ciphertext menjadi block
-        clefia_decrypt(&config, &data[i]);
+        block_decrypt(&config, &data[i]);
 
         // XOR block block dengan block ciphertext sebelumnya
         // gunakan IV bila ini adalah block pertama
         xor_block(&data[i], &data[i], prev_block);
 
         // Pindahkan block ciphertext yang telah disimpan
-        memcpy(prev_block, cipher_block, 16);
+        memcpy(prev_block, cipher_block, BLOCKSIZEB);
     }
 }
 
@@ -661,29 +661,28 @@ clefia_decrypt_cbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-clefia_encrypt_cfb(char* data, uint32_t length, char * key, char * iv)
+clefia_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     clefia_t   config;
-    char       prev_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
 
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya
         // gunakan IV bila ini block pertama
-        clefia_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR dengan plaintext untuk mendapatkan ciphertext
         xor_block(&data[i], &data[i], prev_block);
 
         // Simpan block ciphertext untuk operasi XOR berikutnya
-        memcpy(prev_block, &data[i], 16);
+        memcpy(prev_block, &data[i], BLOCKSIZEB);
     }
 }
 
@@ -692,33 +691,32 @@ clefia_encrypt_cfb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-clefia_decrypt_cfb(char* data, uint32_t length, char * key, char * iv)
+clefia_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     clefia_t   config;
-    char       prev_block[16];
-    char       cipher_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ctext_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
 
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan block cipher untuk operasi
-        memcpy(cipher_block, &data[i], 16);
+        memcpy(cipher_block, &data[i], BLOCKSIZEB);
 
         // Enkripsi block sebelumnya
         // gunakan IV bila ini block pertama
-        clefia_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR dengan plaintext untuk mendapatkan ciphertext
         xor_block(&data[i], &data[i], prev_block);
 
         // Simpan block ciphertext untuk operasi XOR berikutnya
-        memcpy(prev_block, cipher_block, 16);
+        memcpy(prev_block, cipher_block, BLOCKSIZEB);
     }
 }
 
@@ -727,23 +725,22 @@ clefia_decrypt_cfb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-clefia_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
+clefia_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
     uint32_t   i;
     clefia_t   config;
-    char       local_nonce[16];
+    uint8_t    local_nonce[BLOCKSIZEB];
     uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(local_nonce, nonce, 16);
+    memcpy(local_nonce, nonce, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi nonce + counter
-        clefia_encrypt(&config, local_nonce);
+        block_encrypt(&config, local_nonce);
 
         // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], local_nonce);
@@ -758,23 +755,22 @@ clefia_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
     Pastikan jumlah block valid.
 */
 void 
-clefia_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
+clefia_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
     uint32_t   i;
     clefia_t   config;
-    char       local_nonce[16];
+    uint8_t    local_nonce[BLOCKSIZEB];
     uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(local_nonce, nonce, 16);
+    memcpy(local_nonce, nonce, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi nonce + counter
-        clefia_encrypt(&config, local_nonce);
+        block_encrypt(&config, local_nonce);
 
         // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], local_nonce);
@@ -790,23 +786,22 @@ clefia_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
     Pastikan jumlah block valid.
 */
 void 
-clefia_encrypt_ofb(char* data, uint32_t length, char * key, char * iv)
+clefia_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     clefia_t   config;
-    char       prev_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
     
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya 
         // gunakan IV bila ini block pertama
-        clefia_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], prev_block);
@@ -818,23 +813,22 @@ clefia_encrypt_ofb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-clefia_decrypt_ofb(char* data, uint32_t length, char * key, char * iv)
+clefia_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     clefia_t   config;
-    char       prev_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
     
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya 
         // gunakan IV bila ini block pertama
-        clefia_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], prev_block);
@@ -847,30 +841,29 @@ clefia_decrypt_ofb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-clefia_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
+clefia_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     clefia_t   config;
-    char       prev_block[16];
-    char       ptext_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ptext_block[BLOCKSIZEB];
 
     // Setup configuration
-    config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan plaintext untuk dioperasikan dengan block berikutnya.
-        memcpy(ptext_block, &data[i], 16);
+        memcpy(ptext_block, &data[i], BLOCKSIZEB);
 
         // XOR plaintext dengan block sebelumnya
         // gunakan IV bila ini block pertama
         xor_block(&data[i], &data[i], prev_block);
 
         // Enkripsi
-        clefia_encrypt(&config, &data[i]);
+        block_encrypt(&config, &data[i]);
 
         // Hitung block berikutnya
         xor_block(prev_block, ptext_block, &data[i]);
@@ -882,26 +875,26 @@ clefia_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-clefia_decrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
+clefia_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     clefia_t   config;
-    char       prev_block[16];
-    char       ctext_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ctext_block[BLOCKSIZEB];
 
     // Setup configuration
     config.bits = 128;
-    clefia_setup(&config, key);
+    key_setup(&config, key, KEYSIZE);
     
     memcpy(prev_block, iv, 16);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan ciphertext untuk dioperasikan dengan block berikutnya.
-        memcpy(ctext_block, &data[i], 16);
+        memcpy(ctext_block, &data[i], BLOCKSIZEB);
 
         // Dekripsi ciphertext untuk mendapatkan plaintext ter-XOR
-        clefia_decrypt(&config, &data[i]);
+        block_decrypt(&config, &data[i]);
 
         // XOR dengan block sebelumnya
         // gunakan IV bila ini block pertama
@@ -948,7 +941,7 @@ int main(int argc, char* argv[])
               0x41, 0x5E, 0xC6, 0x3C  };
 
     length = strlen(data);
-    printf("Length: %d - Buffer: %s\n", strlen(data), data);
+    printf("Length: %zd - Buffer: %s\n", strlen(data), data);
     printx("Original", data, length);
 
     /*

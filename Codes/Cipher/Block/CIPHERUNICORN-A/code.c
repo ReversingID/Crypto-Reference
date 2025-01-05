@@ -1,19 +1,28 @@
 /*
-    Unicorn-A by NEC Corporation
+    CIPHERUNICORN-A by NEC Corporation
     Archive of Reversing.ID
     Block Cipher
 
-    Assemble:
-        (gcc)
-        $ gcc -m32 -S -masm=intel -o Unicorn-A.asm Unicorn-A.c
+Compile:
+    (msvc)
+    $ cl code.c
 
-        (msvc)
-        $ cl /c /FaBBS.asm Unicorn-A.c
+Assemble:
+    (gcc)
+    $ gcc -m32 -S -masm=intel -o code.asm code.c
+
+    (msvc)
+    $ cl /c /FaBBS.asm code.c
 */
 #include <stdint.h>
 #include <memory.h>
 
 /* ************************ CONFIGURATION & SEED ************************ */
+#define BLOCKSIZE   128
+#define BLOCKSIZEB  16
+#define KEYSIZE     128
+#define KEYSIZEB    16
+
 #define ROUND 16
 #define LINE  8
 
@@ -97,42 +106,46 @@ typedef struct
 
 
 /* ********************* INTERNAL FUNCTIONS PROTOTYPE ********************* */
-static void F(uint32_t, uint32_t, uint32_t*, uint32_t*, uint32_t*);
+void block_encrypt(unicorn_t * config, uint8_t val[BLOCKSIZEB]);
+void block_decrypt(unicorn_t * config, uint8_t val[BLOCKSIZEB]);
+void key_setup(unicorn_t * config, uint8_t secret[32]);
+
+void F(uint32_t, uint32_t, uint32_t*, uint32_t*, uint32_t*);
 
 
 /* ********************* MODE OF OPERATIONS PROTOTYPE ********************* */
 /** Electronic Code Book mode **/
-void unicorn_encrypt_ecb(char* data, uint32_t length, char * key);
-void unicorn_decrypt_ecb(char* data, uint32_t length, char * key);
+void unicorn_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
+void unicorn_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
 
 /** Cipher Block Chaining mode **/
-void unicorn_encrypt_cbc(char* data, uint32_t length, char * key, char * iv);
-void unicorn_decrypt_cbc(char* data, uint32_t length, char * key, char * iv);
+void unicorn_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void unicorn_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Cipher Feedback mode **/
-void unicorn_encrypt_cfb(char* data, uint32_t length, char * key, char * iv);
-void unicorn_decrypt_cfb(char* data, uint32_t length, char * key, char * iv);
+void unicorn_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void unicorn_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Counter mode **/
-void unicorn_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce);
-void unicorn_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce);
+void unicorn_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
+void unicorn_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
 
 /** Output Feedback mode **/
-void unicorn_encrypt_ofb(char* data, uint32_t length, char * key, char * iv);
-void unicorn_decrypt_ofb(char* data, uint32_t length, char * key, char * iv);
+void unicorn_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void unicorn_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Propagating Cipher Block Chaining mode **/
-void unicorn_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv);
-void unicorn_decrypt_pcbc(char* data, uint32_t length, char * key, char * iv);
+void unicorn_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void unicorn_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 
 /* ************************ CRYPTOGRAPHY ALGORITHM ************************ */
 /* 
-    Enkripsi sebuah block dengan Unicorn-A. 
-    Pastikan konfigurasi telah dilakukan dengan memanggil unicorn_setup()
+    Enkripsi sebuah block dengan CIPHERUNICORN-A. 
+    Pastikan konfigurasi telah dilakukan dengan memanggil key_setup()
 */
 void 
-unicorn_encrypt(unicorn_t * config, uint8_t val[16])
+block_encrypt(unicorn_t * config, uint8_t val[16])
 {
     uint32_t wx[4], tmp[2];
     int32_t  i;
@@ -184,10 +197,11 @@ unicorn_encrypt(unicorn_t * config, uint8_t val[16])
     val[15] = (uint8_t)  wx[1];
 }
 /* 
-    Dekripsi sebuah block dengan Unicorn-A. 
-    Pastikan konfigurasi telah dilakukan dengan memanggil unicorn_setup()
+    Dekripsi sebuah block dengan CIPHERUNICORN-A. 
+    Pastikan konfigurasi telah dilakukan dengan memanggil key_setup()
 */
-void unicorn_decrypt(unicorn_t * config, uint8_t val[16])
+void 
+block_decrypt(unicorn_t * config, uint8_t val[16])
 {
     uint32_t wx[4], tmp[2];
     int32_t  i;
@@ -290,7 +304,7 @@ F(uint32_t ida, uint32_t idb, uint32_t *k, uint32_t *oda, uint32_t *odb)
 
 /* Turunkan round-key dari secret key */
 void 
-unicorn_setup(unicorn_t * config, uint8_t secret[32])
+key_setup(unicorn_t * config, uint8_t secret[32])
 {
     uint32_t wk[LINE], ek[ROUND * 4 + 8];
     int32_t  i, j, n = ROUND + 2;
@@ -345,10 +359,10 @@ unicorn_setup(unicorn_t * config, uint8_t secret[32])
 /* *************************** HELPER FUNCTIONS *************************** */
 /* Xor 2 block data */
 void 
-xor_block(char * dst, char * src1, char * src2)
+xor_block(uint8_t * dst, uint8_t * src1, uint8_t * src2)
 {
     register uint32_t i;
-    for (i = 0; i < 16; i++)
+    for (i = 0; i < BLOCKSIZEB; i++)
         dst[i] = src1[i] ^ src2[i];
 }
 
@@ -360,16 +374,16 @@ xor_block(char * dst, char * src1, char * src2)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_ecb(char* data, uint32_t length, char * key)
+unicorn_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     unicorn_t  config;
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
 
-    for (i = 0; i < length; i += 16)
-        unicorn_encrypt(&config, &data[i]);
+    for (i = 0; i < length; i += BLOCKSIZEB)
+        block_encrypt(&config, &data[i]);
 }
 
 /*
@@ -379,16 +393,16 @@ unicorn_encrypt_ecb(char* data, uint32_t length, char * key)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_ecb(char* data, uint32_t length, char * key)
+unicorn_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     unicorn_t  config;
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
 
-    for(i = 0; i < length; i += 16)
-        unicorn_decrypt(&config, &data[i]);
+    for(i = 0; i < length; i += BLOCKSIZEB)
+        block_decrypt(&config, &data[i]);
 }
 
 
@@ -398,24 +412,24 @@ unicorn_decrypt_ecb(char* data, uint32_t length, char * key)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_cbc(char* data, uint32_t length, char * key, char * iv)
+unicorn_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
     char     * prev_block;
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
 
     prev_block = iv;
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // XOR block plaintext dengan block ciphertext sebelumnya
         xor_block(&data[i], &data[i], prev_block);
 
         // Enkripsi plaintext menjadi ciphertext
-        unicorn_encrypt(&config, &data[i]);
+        block_encrypt(&config, &data[i]);
 
         // Simpan block ciphertext untuk operasi XOR selanjutnya
         prev_block = &data[i];
@@ -428,32 +442,32 @@ unicorn_encrypt_cbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_cbc(char* data, uint32_t length, char * key, char * iv)
+unicorn_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
-    char       prev_block[16];
-    char       cipher_block[16];
+    char       prev_block[BLOCKSIZEB];
+    char       cipher_block[BLOCKSIZEB];
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan block ciphertext untuk operasi XOR berikutnya.
-        memcpy(cipher_block, &data[i], 16);
+        memcpy(cipher_block, &data[i], BLOCKSIZEB);
 
         // Dekripsi ciphertext menjadi block
-        unicorn_decrypt(&config, &data[i]);
+        block_decrypt(&config, &data[i]);
 
         // XOR block block dengan block ciphertext sebelumnya
         // gunakan IV bila ini adalah block pertama
         xor_block(&data[i], &data[i], prev_block);
 
         // Pindahkan block ciphertext yang telah disimpan
-        memcpy(prev_block, cipher_block, 16);
+        memcpy(prev_block, cipher_block, BLOCKSIZEB);
     }
 }
 
@@ -463,28 +477,28 @@ unicorn_decrypt_cbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_cfb(char* data, uint32_t length, char * key, char * iv)
+unicorn_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
-    char       prev_block[16];
+    char       prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
 
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya
         // gunakan IV bila ini block pertama
-        unicorn_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR dengan plaintext untuk mendapatkan ciphertext
         xor_block(&data[i], &data[i], prev_block);
 
         // Simpan block ciphertext untuk operasi XOR berikutnya
-        memcpy(prev_block, &data[i], 16);
+        memcpy(prev_block, &data[i], BLOCKSIZEB);
     }
 }
 
@@ -493,32 +507,32 @@ unicorn_encrypt_cfb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_cfb(char* data, uint32_t length, char * key, char * iv)
+unicorn_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
-    char       prev_block[16];
-    char       cipher_block[16];
+    char       prev_block[BLOCKSIZEB];
+    char       cipher_block[BLOCKSIZEB];
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
 
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan block cipher untuk operasi
-        memcpy(cipher_block, &data[i], 16);
+        memcpy(cipher_block, &data[i], BLOCKSIZEB);
 
         // Enkripsi block sebelumnya
         // gunakan IV bila ini block pertama
-        unicorn_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR dengan plaintext untuk mendapatkan ciphertext
         xor_block(&data[i], &data[i], prev_block);
 
         // Simpan block ciphertext untuk operasi XOR berikutnya
-        memcpy(prev_block, cipher_block, 16);
+        memcpy(prev_block, cipher_block, BLOCKSIZEB);
     }
 }
 
@@ -527,22 +541,22 @@ unicorn_decrypt_cfb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
+unicorn_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
     uint32_t   i;
     unicorn_t  config;
-    char       local_nonce[16];
+    char       local_nonce[BLOCKSIZEB];
     uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(local_nonce, nonce, 16);
+    memcpy(local_nonce, nonce, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi nonce + counter
-        unicorn_encrypt(&config, local_nonce);
+        block_encrypt(&config, local_nonce);
 
         // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], local_nonce);
@@ -557,22 +571,22 @@ unicorn_encrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
+unicorn_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
     uint32_t   i;
     unicorn_t  config;
-    char       local_nonce[16];
+    char       local_nonce[BLOCKSIZEB];
     uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(local_nonce, nonce, 16);
+    memcpy(local_nonce, nonce, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi nonce + counter
-        unicorn_encrypt(&config, local_nonce);
+        block_encrypt(&config, local_nonce);
 
         // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], local_nonce);
@@ -588,22 +602,22 @@ unicorn_decrypt_ctr(char* data, uint32_t length, char * key, char *nonce)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_ofb(char* data, uint32_t length, char * key, char * iv)
+unicorn_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
-    char       prev_block[16];
+    char       prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
     
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya 
         // gunakan IV bila ini block pertama
-        unicorn_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], prev_block);
@@ -615,22 +629,22 @@ unicorn_encrypt_ofb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_ofb(char* data, uint32_t length, char * key, char * iv)
+unicorn_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
-    char       prev_block[16];
+    char       prev_block[BLOCKSIZEB];
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
     
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Enkripsi block sebelumnya 
         // gunakan IV bila ini block pertama
-        unicorn_encrypt(&config, prev_block);
+        block_encrypt(&config, prev_block);
 
         // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
         xor_block(&data[i], &data[i], prev_block);
@@ -643,29 +657,29 @@ unicorn_decrypt_ofb(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
+unicorn_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
-    char       prev_block[16];
-    char       ptext_block[16];
+    char       prev_block[BLOCKSIZEB];
+    char       ptext_block[BLOCKSIZEB];
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan plaintext untuk dioperasikan dengan block berikutnya.
-        memcpy(ptext_block, &data[i], 16);
+        memcpy(ptext_block, &data[i], BLOCKSIZEB);
 
         // XOR plaintext dengan block sebelumnya
         // gunakan IV bila ini block pertama
         xor_block(&data[i], &data[i], prev_block);
 
         // Enkripsi
-        unicorn_encrypt(&config, &data[i]);
+        block_encrypt(&config, &data[i]);
 
         // Hitung block berikutnya
         xor_block(prev_block, ptext_block, &data[i]);
@@ -677,25 +691,25 @@ unicorn_encrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_pcbc(char* data, uint32_t length, char * key, char * iv)
+unicorn_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
-    char       prev_block[16];
-    char       ctext_block[16];
+    uint8_t    prev_block[BLOCKSIZEB];
+    uint8_t    ctext_block[BLOCKSIZEB];
 
     // Setup configuration
-    unicorn_setup(&config, key);
+    key_setup(&config, key);
     
-    memcpy(prev_block, iv, 16);
+    memcpy(prev_block, iv, BLOCKSIZEB);
 
-    for (i = 0; i < length; i += 16)
+    for (i = 0; i < length; i += BLOCKSIZEB)
     {
         // Simpan ciphertext untuk dioperasikan dengan block berikutnya.
-        memcpy(ctext_block, &data[i], 16);
+        memcpy(ctext_block, &data[i], BLOCKSIZEB);
 
         // Dekripsi ciphertext untuk mendapatkan plaintext ter-XOR
-        unicorn_decrypt(&config, &data[i]);
+        block_decrypt(&config, &data[i]);
 
         // XOR dengan block sebelumnya
         // gunakan IV bila ini block pertama
@@ -738,7 +752,7 @@ int main(int argc, char* argv[])
               0x2A, 0x29, 0xE1, 0xD1 };
 
     length = strlen(data);
-    printf("Length: %d - Buffer: %s\n", strlen(data), data);
+    printf("Length: %zd - Buffer: %s\n", strlen(data), data);
     printx("Original", data, length);
 
     /*
