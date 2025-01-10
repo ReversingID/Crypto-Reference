@@ -365,7 +365,7 @@ threeway_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *no
 {
     uint32_t   i;
     uint8_t    local_nonce[BLOCKSIZEB];
-    uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
+    uint32_t * nonce_counter = (uint32_t*)&local_nonce[BLOCKSIZEB-4];
     
     memcpy(local_nonce, nonce, BLOCKSIZEB);
 
@@ -391,7 +391,7 @@ threeway_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *no
 {
     uint32_t   i;
     uint8_t    local_nonce[BLOCKSIZEB];
-    uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
+    uint32_t * nonce_counter = (uint32_t*)&local_nonce[BLOCKSIZEB-4];
     
     memcpy(local_nonce, nonce, BLOCKSIZEB);
 

@@ -659,7 +659,7 @@ safer_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * nonc
     safer_t    config;
     uint8_t    local_nonce[16];
     uint32_t   i;
-    uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
+    uint32_t * nonce_counter = (uint32_t*)&local_nonce[BLOCKSIZEB-4];
 
     // configure
     key_setup(&config, key, KEYSIZEB);
@@ -689,7 +689,7 @@ safer_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * nonc
     safer_t    config;
     uint8_t    local_nonce[16];
     uint32_t   i;
-    uint32_t * nonce_counter = (uint32_t*)&local_nonce[12];
+    uint32_t * nonce_counter = (uint32_t*)&local_nonce[BLOCKSIZEB-4];
 
     // configure
     key_setup(&config, key, KEYSIZEB);
