@@ -25,6 +25,7 @@ Assemble:
 #define ROUNDS          16
 
 #ifdef _MSC_VER
+    #include <stdlib.h>
     #pragma intrinsic(_lrotr,_lrotl)
     #define rotr(x,n)   _lrotr(x,n)
     #define rotl(x,n)   _lrotl(x,n)
@@ -35,14 +36,16 @@ Assemble:
 
 #define bswap32(x)      (rotl(x,8) & 0x00FF00FF | rotr(x, 8) & 0xFF00FF00)
 
-#ifdef _MSC_VER
-    #define LITTLE_ENDIAN
-#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-    #define LITTLE_ENDIAN 
-#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-    #define BIG_ENDIAN
-#else 
-    #define BIG_ENDIAN
+#if !defined(LITTLE_ENDIAN) && !defined(BIG_ENDIAN)
+    #ifdef _MSC_VER
+        #define LITTLE_ENDIAN
+    #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+        #define LITTLE_ENDIAN 
+    #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+        #define BIG_ENDIAN
+    #else 
+        #define BIG_ENDIAN
+    #endif
 #endif
 
 #ifdef LITTLE_ENDIAN
@@ -76,8 +79,8 @@ void khufu_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *
 void khufu_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Counter mode **/
-void khufu_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
-void khufu_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
+void khufu_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * nonce);
+void khufu_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * nonce);
 
 /** Output Feedback mode **/
 void khufu_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);

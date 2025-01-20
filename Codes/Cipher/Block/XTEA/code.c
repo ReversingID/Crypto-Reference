@@ -16,7 +16,6 @@ Assemble:
 */
 #include <stdint.h>
 #include <string.h>
-#include <stdlib.h>
 
 /* ************************* CONFIGURATION & SEED ************************* */
 #define BLOCKSIZE   64
@@ -26,6 +25,7 @@ Assemble:
 #define ROUNDS      32
 
 #ifdef _MSC_VER
+    #include <stdlib.h>
     #pragma intrinsic(_lrotr,_lrotl)
     #define rotr(x,n)   _lrotr(x,n)
     #define rotl(x,n)   _lrotl(x,n)
@@ -44,6 +44,24 @@ Assemble:
     #define BIG_ENDIAN
 #else 
     #define BIG_ENDIAN
+#endif
+
+#if !defined(LITTLE_ENDIAN) && !defined(BIG_ENDIAN)
+    #ifdef _MSC_VER
+        #define LITTLE_ENDIAN
+    #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+        #define LITTLE_ENDIAN 
+    #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+        #define BIG_ENDIAN
+    #else 
+        #define BIG_ENDIAN
+    #endif
+#endif
+
+#ifdef LITTLE_ENDIAN
+    #define convert(x)   bswap32(x)
+#else
+    #define convert(x)   (x)
 #endif
 
 
@@ -91,21 +109,12 @@ void block_encrypt(uint8_t * val, uint8_t * key)
     uint32_t * p_val = (uint32_t*)val;
     uint32_t * p_key = (uint32_t*)key;
 
-#ifdef LITTLE_ENDIAN
-    v0 = bswap32(p_val[0]);
-    v1 = bswap32(p_val[1]);
-    k0 = bswap32(p_key[0]);
-    k1 = bswap32(p_key[1]);
-    k2 = bswap32(p_key[2]);
-    k3 = bswap32(p_key[3]);
-#else 
-    v0 = p_val[0];
-    v1 = p_val[1];
-    k0 = p_key[0];
-    k1 = p_key[1];
-    k2 = p_key[2];
-    k3 = p_key[3];
-#endif
+    v0 = convert(p_val[0]);
+    v1 = convert(p_val[1]);
+    k0 = convert(p_key[0]);
+    k1 = convert(p_key[1]);
+    k2 = convert(p_key[2]);
+    k3 = convert(p_key[3]);
 
     // Round: 32
     for (i =  0; i < ROUNDS; i++)
@@ -116,13 +125,8 @@ void block_encrypt(uint8_t * val, uint8_t * key)
         v1  += (((v0 << 4) ^ (v0 >> 5)) + v0) ^ (sum + key[(sum>>11) & 3]);
     }
 
-#ifdef LITTLE_ENDIAN
-    p_val[0] = bswap32(v0);
-    p_val[1] = bswap32(v1);
-#else
-    p_val[0] = v0;
-    p_val[1] = v1;
-#endif
+    p_val[0] = convert(v0);
+    p_val[1] = convert(v1);
 }
 
 
@@ -140,21 +144,12 @@ void block_decrypt(uint8_t * val, uint8_t * key)
     uint32_t * p_val = (uint32_t*)val;
     uint32_t * p_key = (uint32_t*)key;
 
-#ifdef LITTLE_ENDIAN
-    v0 = bswap32(p_val[0]);
-    v1 = bswap32(p_val[1]);
-    k0 = bswap32(p_key[0]);
-    k1 = bswap32(p_key[1]);
-    k2 = bswap32(p_key[2]);
-    k3 = bswap32(p_key[3]);
-#else 
-    v0 = p_val[0];
-    v1 = p_val[1];
-    k0 = p_key[0];
-    k1 = p_key[1];
-    k2 = p_key[2];
-    k3 = p_key[3];
-#endif
+    v0 = convert(p_val[0]);
+    v1 = convert(p_val[1]);
+    k0 = convert(p_key[0]);
+    k1 = convert(p_key[1]);
+    k2 = convert(p_key[2]);
+    k3 = convert(p_key[3]);
 
     // Round: 32
     for (i =  0; i < ROUNDS; i++)
@@ -165,13 +160,8 @@ void block_decrypt(uint8_t * val, uint8_t * key)
         v0  -= (((v1 << 4) ^ (v1 >> 5)) + v1) ^ (sum + key[sum & 3]);
     }
 
-#ifdef LITTLE_ENDIAN
-    p_val[0] = bswap32(v0);
-    p_val[1] = bswap32(v1);
-#else
-    p_val[0] = v0;
-    p_val[1] = v1;
-#endif
+    p_val[0] = convert(v0);
+    p_val[1] = convert(v1);
 }
 
 

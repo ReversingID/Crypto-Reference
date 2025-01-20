@@ -19,7 +19,6 @@ Note:
 */
 #include <stdint.h>
 #include <string.h>
-#include <stdlib.h>
 
 /* ************************* CONFIGURATION & SEED ************************* */
 #define BLOCKSIZE       64
@@ -28,14 +27,16 @@ Note:
 #define KEYSIZEB        8
 #define ROUNDS          16
 
-#ifdef _MSC_VER
-    #define LITTLE_ENDIAN
-#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-    #define LITTLE_ENDIAN 
-#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-    #define BIG_ENDIAN
-#else 
-    #define BIG_ENDIAN
+#if !defined(LITTLE_ENDIAN) && !defined(BIG_ENDIAN)
+    #ifdef _MSC_VER
+        #define LITTLE_ENDIAN
+    #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+        #define LITTLE_ENDIAN 
+    #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+        #define BIG_ENDIAN
+    #else 
+        #define BIG_ENDIAN
+    #endif
 #endif
 
 // initial permutation table

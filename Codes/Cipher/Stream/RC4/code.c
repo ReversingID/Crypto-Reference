@@ -17,13 +17,12 @@ Assemble:
 
 #include <stdint.h>
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 /* ************************ CONFIGURATION & SEED ************************ */
 #define swap(x, y)      tmp = x; x = y; y = tmp;
 
-typedef struct arcfour_key
+typedef struct
 {      
    uint8_t state[256];       
    uint8_t i, j;
@@ -101,6 +100,7 @@ void rc4_decrypt(uint8_t * data, size_t length, const uint8_t * key, size_t key_
 
 /* ************************ CONTOH PENGGUNAAN ************************ */
 #include "../testutil.h"
+#include <stdio.h>
 
 int main(int argc, char* argv[])
 {
