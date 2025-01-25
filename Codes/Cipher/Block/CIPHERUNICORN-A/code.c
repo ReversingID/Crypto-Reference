@@ -115,28 +115,28 @@ void F(uint32_t, uint32_t, uint32_t*, uint32_t*, uint32_t*);
 
 /* ********************* MODE OF OPERATIONS PROTOTYPE ********************* */
 /** Electronic Code Book mode **/
-void unicorn_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
-void unicorn_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
+void encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
+void decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
 
 /** Cipher Block Chaining mode **/
-void unicorn_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void unicorn_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Cipher Feedback mode **/
-void unicorn_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void unicorn_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Counter mode **/
-void unicorn_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
-void unicorn_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
+void encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
+void decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
 
 /** Output Feedback mode **/
-void unicorn_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void unicorn_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Propagating Cipher Block Chaining mode **/
-void unicorn_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void unicorn_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 
 /* ************************ CRYPTOGRAPHY ALGORITHM ************************ */
@@ -374,7 +374,7 @@ xor_block(uint8_t * dst, uint8_t * src1, uint8_t * src2)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
+encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -393,7 +393,7 @@ unicorn_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
+decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -412,7 +412,7 @@ unicorn_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -442,7 +442,7 @@ unicorn_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -477,7 +477,7 @@ unicorn_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -507,7 +507,7 @@ unicorn_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -541,7 +541,7 @@ unicorn_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
+encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -571,7 +571,7 @@ unicorn_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *non
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
+decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -602,7 +602,7 @@ unicorn_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *non
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -629,7 +629,7 @@ unicorn_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -657,7 +657,7 @@ unicorn_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv
     Pastikan jumlah block valid.
 */
 void 
-unicorn_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -691,7 +691,7 @@ unicorn_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * i
     Pastikan jumlah block valid.
 */
 void 
-unicorn_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     unicorn_t  config;
@@ -718,72 +718,4 @@ unicorn_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * i
         // Hitung block berikutnya
         xor_block(prev_block, ctext_block, &data[i]);
     }
-}
-
-
-
-
-
-/* ************************ CONTOH PENGGUNAAN ************************ */
-#include "../testutil.h"
-
-int main(int argc, char* argv[])
-{
-    int  i, length;
-    char data[] = "Reversing.ID - Reverse Engineering Community";
-    char encbuffer[64];
-    char decbuffer[64]; 
-
-    /* secret key: 32-bytes */
-    uint8_t key[32] =
-            { 0x52, 0x45, 0x56, 0x45, 0x52, 0x53, 0x49, 0x4E, 0x47, 0x2E, 0x49, 0x44, 
-    /* ASCII:   R     E     V     E     R     S     I     N     G     .     I     D  */
-              0x53, 0x45, 0x43, 0x52, 0x45, 0x54, 0x20, 0x4b, 0x45, 0x59, 0x31, 0x32,
-            /*  S     E     C     R     E     T           K     E     Y     1     2  */
-              0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30 };
-            /*  3     4     5     6     7     8     9     0 */
-            
-    /*
-    initialization vector: 16-bytes
-    ukuran IV disesuaikan dengan block yang dipergunakan.
-    */
-    uint8_t iv[16] = 
-            { 0x13, 0x51, 0x00, 0x30, 0x1C, 0xCb, 0x33, 0xF8, 0x4F, 0xD6, 0x34, 0x9A,
-              0x2A, 0x29, 0xE1, 0xD1 };
-
-    length = strlen(data);
-    printf("Length: %zd - Buffer: %s\n", strlen(data), data);
-    printx("Original", data, length);
-
-    /*
-    Panjang plaintext: 44
-    Karena block cipher mensyaratkan bahwa data harus merupakan kelipatan dari ukuran 
-    block, maka harus ada padding agar panjang data mencapai kelipatan block.
-    */
-    memset(encbuffer, 0, sizeof(encbuffer));
-    memset(decbuffer, 0, sizeof(decbuffer));
-
-    // Enkripsi - block: 128   key: 256
-    memcpy(encbuffer, data, length);
-    unicorn_encrypt_ecb(encbuffer, 64, key);       // ECB
-    // unicorn_encrypt_cbc(encbuffer, 64, key, iv);   // CBC
-    // unicorn_encrypt_cfb(encbuffer, 64, key, iv);   // CFB
-    // unicorn_encrypt_ctr(encbuffer, 64, key, iv);   // CTR
-    // unicorn_encrypt_ofb(encbuffer, 64, key, iv);   // OFB
-    // unicorn_encrypt_pcbc(encbuffer, 64, key, iv);  // PCBC
-    printx("Encrypted:", encbuffer, 64);
-
-    // Dekripsi - block: 128   key: 256
-    memcpy(decbuffer, encbuffer, 64);
-    unicorn_decrypt_ecb(decbuffer, 64, key);       // ECB
-    // unicorn_decrypt_cbc(decbuffer, 64, key, iv);   // CBC
-    // unicorn_decrypt_cfb(decbuffer, 64, key, iv);   // CFB
-    // unicorn_decrypt_ctr(decbuffer, 64, key, iv);   // CTR
-    // unicorn_decrypt_ofb(decbuffer, 64, key, iv);   // OFB
-    // unicorn_decrypt_pcbc(decbuffer, 64, key, iv);  // PCBC
-    printx("Decrypted:", decbuffer, 64);
-
-    printf("\nFinal: %s\n", decbuffer);
-
-    return 0;
 }

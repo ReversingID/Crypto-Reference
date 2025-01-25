@@ -110,28 +110,28 @@ void xor_block(uint8_t* dst, const uint8_t * src1, const uint8_t * src2);
 
 /* ********************* MODE OF OPERATIONS PROTOTYPE ********************* */
 /** Electronic Code Book mode **/
-void camellia_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
-void camellia_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
+void encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
+void decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
 
 /** Cipher Block Chaining mode **/
-void camellia_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void camellia_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Cipher Feedback mode **/
-void camellia_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void camellia_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Counter mode **/
-void camellia_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
-void camellia_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
+void encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
+void decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
 
 /** Output Feedback mode **/
-void camellia_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void camellia_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 /** Propagating Cipher Block Chaining mode **/
-void camellia_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void camellia_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
+void decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 
 /* ************************ CRYPTOGRAPHY ALGORITHM ************************ */
@@ -438,7 +438,7 @@ xor_block(uint8_t * dst, const uint8_t * src1, const uint8_t * src2)
     sebelum dan berikutnya.
     Pastikan jumlah block valid.
 */
-void camellia_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
+void encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     camellia_t config;
@@ -457,7 +457,7 @@ void camellia_encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
     sebelum dan berikutnya.
     Pastikan jumlah block valid.
 */
-void camellia_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
+void decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
 {
     uint32_t   i;
     camellia_t config;
@@ -476,7 +476,7 @@ void camellia_decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
     Sebelum enkripsi, plaintext akan di-XOR dengan block sebelumnya.
     Pastikan jumlah block valid.
 */
-void camellia_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+void encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t    i;
     camellia_t  config;
@@ -503,7 +503,7 @@ void camellia_encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_
     Setelah dekripsi, plaintext akan di-XOR dengan block sebelumnya.
     Pastikan jumlah block valid.
 */
-void camellia_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+void decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     camellia_t config;
@@ -537,7 +537,7 @@ void camellia_decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_
     Enkripsi block data dengan mode CFB.
     Pastikan jumlah block valid.
 */
-void camellia_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+void encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     camellia_t config;
@@ -566,7 +566,7 @@ void camellia_encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_
     Dekripsi block data dengan mode CFB.
     Pastikan jumlah block valid.
 */
-void camellia_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+void decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     camellia_t config;
@@ -600,7 +600,7 @@ void camellia_decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_
     Enkripsi block data dengan mode CTR.
     Pastikan jumlah block valid.
 */
-void camellia_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
+void encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
     uint32_t   i;
     camellia_t config;
@@ -629,7 +629,7 @@ void camellia_encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_
     Enkripsi block data dengan mode CTR.
     Pastikan jumlah block valid.
 */
-void camellia_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
+void decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
 {
     uint32_t   i;
     camellia_t config;
@@ -659,7 +659,7 @@ void camellia_decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_
     Enkripsi block data dengan mode OFB.
     Pastikan jumlah block valid.
 */
-void camellia_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+void encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     camellia_t config;
@@ -685,7 +685,7 @@ void camellia_encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_
     Dekripsi block data dengan mode OFB.
     Pastikan jumlah block valid.
 */
-void camellia_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+void decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     camellia_t config;
@@ -712,7 +712,7 @@ void camellia_decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_
     Enkripsi block data dengan mode OFB.
     Pastikan jumlah block valid.
 */
-void camellia_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+void encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     camellia_t config;
@@ -745,7 +745,7 @@ void camellia_encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8
     Dekripsi block data dengan mode OFB.
     Pastikan jumlah block valid.
 */
-void camellia_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
+void decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
 {
     uint32_t   i;
     camellia_t config;
@@ -772,75 +772,4 @@ void camellia_decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8
         // Hitung block berikutnya
         xor_block(prev_block, ptext_block, &data[i]);
     }
-}
-
-
-
-
-/* ************************ CONTOH PENGGUNAAN ************************ */
-#include "../testutil.h"
-
-int main(int argc, char* argv[])
-{
-    int  i, length;
-    char data[] = "Reversing.ID - Reverse Engineering Community";
-    char encbuffer[64];
-    char decbuffer[64];
-
-    /* 
-    secret key: 32-bytes 
-    Meskipun key didefinisikan sebagai 32-byte karakter, hanya 16 karakter saja yang
-    digunakan, karena bits dikonfigurasi sebagai 128-bit (16-byte).
-    */
-    uint8_t key[32] = 
-            { 0x52, 0x45, 0x56, 0x45, 0x52, 0x53, 0x49, 0x4E, 0x47, 0x2E, 0x49, 0x44, 
-    /* ASCII:   R     E     V     E     R     S     I     N     G     .     I     D  */
-              0x53, 0x45, 0x43, 0x52, 0x45, 0x54, 0x20, 0x4b, 0x45, 0x59, 0x31, 0x32,
-            /*  S     E     C     R     E     T           K     E     Y     1     2  */
-              0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30 };
-            /*  3     4     5     6     7     8     9     0 */
-
-    /*
-    initialization vector: 16-bytes
-    ukuran IV disesuaikan dengan block yang dipergunakan.
-    */
-    uint8_t iv[16] = 
-            { 0x13, 0x51, 0x00, 0x30, 0x33, 0x8F, 0x0F, 0x70, 0x96, 0xAE, 0x8F, 0xB0, 
-              0x97, 0xD7, 0x86, 0xDA }; 
-
-    length = strlen(data);
-    printf("Length: %zd - Buffer: %s\n", strlen(data), data);
-    printx("Original", data, length);
-
-    /*
-    Panjang plaintext: 44
-    Karena block cipher mensyaratkan bahwa data harus merupakan kelipatan dari ukuran 
-    block, maka harus ada padding agar panjang data mencapai kelipatan block.
-    */
-    memset(encbuffer, 0, sizeof(encbuffer));
-    memset(decbuffer, 0, sizeof(decbuffer));
-
-    // Enkripsi - block: 128   key: 128
-    memcpy(encbuffer, data, length);
-    camellia_encrypt_ecb(encbuffer, 64, key);       // ECB
-    // camellia_encrypt_cbc(encbuffer, 64, key, iv);   // CBC
-    // camellia_encrypt_cfb(encbuffer, 64, key, iv);   // CFB
-    // camellia_encrypt_ctr(encbuffer, 64, key, iv);   // CTR
-    // camellia_encrypt_ofb(encbuffer, 64, key, iv);   // OFB
-    // camellia_encrypt_pcbc(encbuffer, 64, key, iv);  // PCBC
-    printx("Encrypted", encbuffer, 64);
-
-    // Dekripsi - block: 128   key: 128
-    memcpy(decbuffer, encbuffer, 64);
-    // camellia_decrypt_ecb(decbuffer, 64, key);       // ECB
-    // camellia_decrypt_cbc(decbuffer, 64, key, iv);   // CBC
-    // camellia_decrypt_cfb(decbuffer, 64, key, iv);   // CFB
-    // camellia_decrypt_ctr(decbuffer, 64, key, iv);   // CTR
-    // camellia_decrypt_ofb(decbuffer, 64, key, iv);   // OFB
-    // camellia_decrypt_pcbc(decbuffer, 64, key, iv);  // PCBC
-    printx("Decrypted", decbuffer, 64);
-
-    printf("\nFinal: %s\n", decbuffer);
-
-    return 0;
 }
