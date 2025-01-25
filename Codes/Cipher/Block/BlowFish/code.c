@@ -48,6 +48,12 @@ Assemble:
     #endif
 #endif
 
+#ifdef LITTLE_ENDIAN
+    #define convert(x) bswap32(x)
+#else 
+    #define convert(x) x
+#endif
+
 #define F(c,x)          (((c->S[0][(x >> 24) & 0xff] + c->S[1][(x >> 16) & 0xff]) ^ c->S[2][(x >>  8) & 0xff]) + c->S[3][x & 0xff])
 
 static const uint32_t ks0[] = {
@@ -381,13 +387,8 @@ block_encrypt(blowfish_t * config, uint8_t val[BLOCKSIZEB])
 
     uint32_t * p_val = (uint32_t*)val;
 
-#ifdef LITTLE_ENDIAN
-    L = bswap32(p_val[0]);
-    R = bswap32(p_val[1]);
-#else 
-    L = p_val[0];
-    R = p_val[1];
-#endif 
+    L = convert(p_val[0]);
+    R = convert(p_val[1]);
 
     for (i = 0; i < ROUNDS; i++)
     {
@@ -406,13 +407,8 @@ block_encrypt(blowfish_t * config, uint8_t val[BLOCKSIZEB])
     R ^= config->P[ROUNDS];
     L ^= config->P[ROUNDS + 1];
 
-#ifdef LITTLE_ENDIAN
-    p_val[0] = bswap32(L);
-    p_val[1] = bswap32(R);
-#else 
-    p_val[0] = L;
-    p_val[1] = R;
-#endif 
+    p_val[0] = convert(L);
+    p_val[1] = convert(R);
 }
 
 /* 
@@ -427,13 +423,8 @@ block_decrypt(blowfish_t * config, uint8_t val[BLOCKSIZEB])
 
     uint32_t * p_val = (uint32_t*)val;
 
-#ifdef LITTLE_ENDIAN
-    L = bswap32(p_val[0]);
-    R = bswap32(p_val[1]);
-#else 
-    L = p_val[0];
-    R = p_val[1];
-#endif 
+    L = convert(p_val[0]);
+    R = convert(p_val[1]);
 
     for (i = ROUNDS + 1; i > 1; i--)
     {
@@ -452,13 +443,8 @@ block_decrypt(blowfish_t * config, uint8_t val[BLOCKSIZEB])
     R ^= config->P[1];
     L ^= config->P[0];
 
-#ifdef LITTLE_ENDIAN
-    p_val[0] = bswap32(L);
-    p_val[1] = bswap32(R);
-#else 
-    p_val[0] = L;
-    p_val[1] = R;
-#endif 
+    p_val[0] = convert(L);
+    p_val[1] = convert(R);
 }
 
 

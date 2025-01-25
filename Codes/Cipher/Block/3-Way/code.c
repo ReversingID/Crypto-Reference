@@ -49,6 +49,12 @@ Assemble:
     #define BIG_ENDIAN
 #endif
 
+#ifdef LITTLE_ENDIAN
+    #define convert(x) bswap32(x)
+#else 
+    #define convert(x) x
+#endif
+
 
 /* ********************* INTERNAL FUNCTIONS PROTOTYPE ********************* */
 void block_encrypt(uint8_t * data, uint8_t * key);
@@ -106,19 +112,11 @@ block_encrypt(uint8_t * data, uint8_t * key)
     uint32_t * p_data = (uint32_t*)data;
     uint32_t * p_key  = (uint32_t*)key;
 
-#ifdef LITTLE_ENDIAN
     for (i = 0; i < 3; i++)
     {
-        _data[i] = bswap32(p_data[i]);
-        _key[i]  = bswap32(p_key[i]);
+        _data[i] = convert(p_data[i]);
+        _key[i]  = convert(p_key[i]);
     }
-#else 
-    for (i = 0; i < 3; i++)
-    {
-        _data[i] = p_data[i];
-        _key[i]  = p_key[i];
-    }
-#endif 
 
     rndcon_gen(STRT_E, rcon);
     for (i = 0; i < ROUNDS; i++)
@@ -134,13 +132,8 @@ block_encrypt(uint8_t * data, uint8_t * key)
     _data[2] ^= _key[2] ^ rcon[ROUNDS];
     theta(_data);
 
-#ifdef LITTLE_ENDIAN
     for (i = 0; i < 3; i++)
-        p_data[i] = bswap32(_data[i]);
-#else 
-    for (i = 0; i < 3; i++)
-        p_data[i] = _data[i];
-#endif 
+        p_data[i] = convert(_data[i]);
 }
 
 
@@ -158,19 +151,11 @@ block_decrypt(uint8_t * data, uint8_t * key)
     uint32_t * p_data = (uint32_t*)data;
     uint32_t * p_key  = (uint32_t*)key;
 
-#ifdef LITTLE_ENDIAN
     for (i = 0; i < 3; i++)
     {
-        _data[i] = bswap32(p_data[i]);
-        _key[i]  = bswap32(p_key[i]);
+        _data[i] = convert(p_data[i]);
+        _key[i]  = convert(p_key[i]);
     }
-#else 
-    for (i = 0; i < 3; i++)
-    {
-        _data[i] = p_data[i];
-        _key[i]  = p_key[i];
-    }
-#endif 
 
     theta(_key);
     mu(_key);
@@ -191,13 +176,8 @@ block_decrypt(uint8_t * data, uint8_t * key)
     theta(_data);
     mu(_data);
 
-#ifdef LITTLE_ENDIAN
     for (i = 0; i < 3; i++)
-        p_data[i] = bswap32(_data[i]);
-#else 
-    for (i = 0; i < 3; i++)
-        p_data[i] = _data[i];
-#endif 
+        p_data[i] = convert(_data[i]);
 }
 
 
