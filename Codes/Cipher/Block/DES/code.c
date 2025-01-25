@@ -231,7 +231,7 @@ block_encrypt(des_t * config, uint8_t * data)
     for (i = 0; i < 8; i++)
         block = (block << 8) | data[i];
 #else 
-    block = *(uint64_t)data;
+    block = *(uint64_t*)data;
 #endif
 
     // actual encryption logic
@@ -255,7 +255,7 @@ block_encrypt(des_t * config, uint8_t * data)
     for (i = 7; i >= 0; i--, output >>= 8)
         data[i] = output & 0xFF;
 #else 
-    *(uint64_t)data = output;
+    *(uint64_t*)data = output;
 #endif 
 }
 
@@ -277,7 +277,7 @@ block_decrypt(des_t * config, uint8_t * data)
     for (i = 0; i < 8; i++)
         block = (block << 8) | data[i];
 #else 
-    block = *(uint64_t)data;
+    block = *(uint64_t*)data;
 #endif 
 
     // actual encryption logic
@@ -301,7 +301,7 @@ block_decrypt(des_t * config, uint8_t * data)
     for (i = 7; i >= 0; i--, output >>= 8)
         data[i] = output & 0xFF;
 #else 
-    *(uint64_t)data = output;
+    *(uint64_t*)data = output;
 #endif 
 }
 
@@ -315,7 +315,7 @@ key_setup(des_t * config, uint8_t * key)
     for (i = 0; i < 8; i++)
         _key = (_key << 8) | key[i];
 #else 
-    _key = *(uint64_t)key;
+    _key = *(uint64_t*)key;
 #endif 
 
     perm_key = permutate(_key, PC1_TABLE, sizeof(PC1_TABLE));
