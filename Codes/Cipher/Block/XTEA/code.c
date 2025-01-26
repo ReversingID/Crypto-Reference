@@ -36,16 +36,6 @@ Assemble:
 
 #define bswap32(x)      (rotl(x,8) & 0x00FF00FF | rotr(x, 8) & 0xFF00FF00)
 
-#ifdef _MSC_VER
-    #define LITTLE_ENDIAN
-#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-    #define LITTLE_ENDIAN 
-#elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-    #define BIG_ENDIAN
-#else 
-    #define BIG_ENDIAN
-#endif
-
 #if !defined(LITTLE_ENDIAN) && !defined(BIG_ENDIAN)
     #ifdef _MSC_VER
         #define LITTLE_ENDIAN

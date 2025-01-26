@@ -51,7 +51,7 @@ Assemble:
 #ifdef LITTLE_ENDIAN
     #define convert(x) bswap32(x)
 #else 
-    #define convert(x) x
+    #define convert(x) (x)
 #endif
 
 #define F(c,x)          (((c->S[0][(x >> 24) & 0xff] + c->S[1][(x >> 16) & 0xff]) ^ c->S[2][(x >>  8) & 0xff]) + c->S[3][x & 0xff])

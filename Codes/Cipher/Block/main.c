@@ -12,6 +12,7 @@ Compile:
     $ cl main.c code.c
 */
 #include <stdint.h>
+#include <string.h>
 #include <stdio.h>
 
 /* ********************* PROTOTYPES ********************* */
