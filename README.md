@@ -1,65 +1,117 @@
 # Crypto Reference
 
-Open repository of cryptography code and reference for reverse engineer purpose.
+[![Kontribusi Diterima](https://img.shields.io/badge/kontribusi-diterima-brightgreen.svg)](CONTRIBUTING.md)
 
-### Selayang Pandang
+> Repositori terbuka berisi kode dan referensi kriptografi untuk keperluan reverse engineering.
 
-Repository ini digunakan untuk menghimpun informasi dan pengetahuan tentang implementasi kriptografi serta kerentanan yang berhubungan dengannya. Di repository ini terdapat berbagai referensi tentang pemanfaatan kriptografi secara praktikal maupun analisis terhadapnya, utamanya untuk menambah pemahaman dalam melakukan reversing sesuatu yang bersinggungan dengan kriptografi.
+Bahasa: **[Indonesia](README.md)** | [English](README-EN.md)
 
-Repository ini merupakan repository bebas dan terbuka. Siapapun, baik internal maupun eksternal komunitas Reversing.ID, dapat mengakses dan memanfaatkannya.
+---
 
-### Apa itu Kriptografi?
+## Daftar Isi
 
-Kriptografi merupakan ilmu yang mempelajari tentang teknik dalam menjaga keamanan pesan / komunikasi dengan asumsi terdapat ancaman keberadaan pihak ketiga.
+- [Tentang Repositori](#tentang-repositori)
+- [Apa itu Kriptografi?](#apa-itu-kriptografi)
+- [Kriptografi dan Reverse Engineering](#kriptografi-dan-reverse-engineering)
+- [Konten](#konten)
+  - [Buku](#buku)
+  - [Kode](#kode)
+  - [Referensi](#referensi)
+  - [Alat](#alat)
+- [Berkontribusi](#berkontribusi)
 
-Beberapa penggunaan kriptografi secara umum adalah:
+---
+
+## Tentang Repositori
+
+Repository ini digunakan untuk menghimpun informasi dan pengetahuan tentang implementasi kriptografi serta kerentanan yang berhubungan dengannya. Di sini terdapat berbagai referensi tentang pemanfaatan kriptografi secara praktikal maupun analisis terhadapnya, utamanya untuk menambah pemahaman dalam melakukan reversing sesuatu yang bersinggungan dengan kriptografi.
+
+Repository ini merupakan repository bebas dan terbuka. Siapapun, baik internal maupun eksternal komunitas [Reversing.ID](https://reversing.id), dapat mengakses dan memanfaatkannya.
+
+---
+
+## Apa itu Kriptografi?
+
+Kriptografi merupakan ilmu yang mempelajari tentang teknik dalam menjaga keamanan pesan/komunikasi dengan asumsi terdapat ancaman keberadaan pihak ketiga.
+
+Penggunaan kriptografi secara umum mencakup:
 
 - menjaga kerahasiaan data agar tak diketahui oleh pihak yang tak berkepentingan.
 - memberikan jaminan bahwa tidak ada perubahan data yang terjadi di luar kuasa sumber informasi.
 - memberikan jaminan bahwa informasi yang diberikan berasal dari pihak yang benar.
 
-### Kriptografi dan Reverse Engineering
+---
 
-Reverse Engineering dalam beberapa hal berkaitan dengan kriptografi.
+## Kriptografi dan Reverse Engineering
 
-Seringkali dalam sebuah analisis terdapat bagian-bagian tertentu yang mengalami proteksi baik proteksi terhadap kode maupun data. Analisis perlu dilakukan untuk mengidentifikasi bagian yang terproteksi agar dapat diatur strategi yang optimal untuk menganalisis objek secara keseluruhan sehingga meminimalisir usaha yang diperlukan.
+Reverse Engineering dalam beberapa hal berkaitan erat dengan kriptografi.
 
-Kriptografi menjadi tulang punggung dalam beberapa proteksi modern, seperti penggunaan enkripsi pada packer maupun protector aplikasi, penggunaan cryptosystem untuk verifikasi serial number, enkripsi pada output file, dsb.
+Seringkali dalam sebuah analisis terdapat bagian-bagian tertentu yang mengalami proteksi, baik terhadap kode maupun data. Kriptografi menjadi tulang punggung dalam beberapa proteksi modern, seperti penggunaan enkripsi pada packer maupun protector aplikasi, penggunaan cryptosystem untuk verifikasi serial number, enkripsi pada output file, dan sebagainya.
 
-Dengan demikian, pemahaman konsep kriptografi yang baik dapat membantu dalam proses Reverse Engineering.
+Dengan demikian, pemahaman konsep kriptografi yang baik dapat membantu secara signifikan dalam proses Reverse Engineering.
 
-### Struktur dan Konten
+---
 
-Repositori ini terbagi menjadi beberapa bagian dengan direktori berbeda.
+## Konten
 
-- Books
-- Codes
-- References
-- Tools
-- Libraries
+### Buku
 
-_Books_ adalah kumpulan buku, diktat perkuliahan, maupun catatan kecil yang membahas kriptografi baik secara umum maupun topik-topik tertentu di dalamnya. Buku-buku di bagian ini diseleksi secara khusus berdasarkan bukan hanya isi namun juga aspek legalitas penyebaran informasi.
+Direktori [`Books/`](Books/) berisi buku dan sumber belajar kriptografi yang bebas atau berlisensi terbuka.
 
-_Codes_ adalah implementasi algoritma kriptografi (enkripsi, hash, digital signature, dsb) dalam berbagai bahasa pemrograman.
+| Judul | Keterangan |
+|-------|-----------|
+| [A Graduate Course in Applied Cryptography](Books/a-graduate-course-in-cryptography.pdf) | Mencakup banyak konstruksi untuk berbagai task kriptografi |
+| [Crypto 101](Books/crypto101.pdf) | Pengantar kriptografi untuk pemula |
+| [Teori dan Aplikasi Kriptografi](Books/teori-dan-aplikasi-kriptografi.pdf) | Buku berbahasa Indonesia |
+| [The Joy of Cryptography](Books/the-joy-of-cryptography.pdf) | Pengantar kriptografi berbasis proof |
 
-_References_ merupakan himpunan referensi berupa artikel, tulisan tangan, dsb tentang implementasi kriptografi, analisis pemecahan algoritma, penerapan dalam kasus tertentu (utamanya proteksi program), dsb.
+Lihat juga [daftar buku eksternal lengkap](References/README.md#books).
 
-_Tools_ adalah bagian yang secara khusus membahas penggunaan peralatan maupun perangkat yang khusus digunakan dalam analisis sebuah algoritma maupun produk kriptografi.
+### Kode
 
-_Libraries_ adalah bagian yang secara khusus membahas penggunaan library kriptografi yang tersedia serta karakteristik-karakteristik yang ada padanya.
+Direktori [`Codes/`](Codes/) berisi implementasi algoritma kriptografi dalam bahasa C. Setiap implementasi berdiri sendiri tanpa ketergantungan pada library kriptografi eksternal.
 
-### Bagaimana Cara Berkontribusi?
+**Cipher**
 
-Ini adalah projek terbuka.
+| Kategori | Algoritma |
+|----------|-----------|
+| [Block Cipher](Codes/Cipher/Block/) | 3-Way, Anubis, Blowfish, Camellia, DES, KHAZAD, LEA, Lucifer, MARS, SAFER, TEA, Treyfer, XTEA, XXTEA, dll |
+| [Classic — Substitusi](Codes/Cipher/Classic/Substitution/) | ADFGVX, Affine, Atbash, AutoKey, Beaufort, Caesar, Hill, Playfair, ROT13, Vigenere, dll |
+| [Classic — Transposisi](Codes/Cipher/Classic/Transposition/) | Columnar-Permutation, Myszkowski, Rail-Fence, Route-Cipher |
+| [Stream Cipher](Codes/Cipher/Stream/) | ChaCha20, Loiss, RC4, SAVILLE, SNOW, Salsa20 |
 
-Kamu bisa memberikan sumbangan seperti kode implementasi cipher, hash, maupun penggunaan algoritma kriptografi untuk kasus-kasus tertentu (verifikasi serial number, verifikasi integritas data, enkripsi informasi sensitif, dsb). Tidak ada batasan dalam hal bahasa pemrograman yang digunakan, namun tidak diperbolehkan penggunaan pustaka (library) kriptografi secara khusus. Adapun penggunana library untuk membantu perhitungan secara primitif (seperti: perkalian bilangan sangat besar) masih diperbolehkan.
+**Hash**
 
-Selain contoh kode, kamu juga dapat menyumbangkan informasi, referensi, catatan, maupun analisis terhadap algoritma kriptografi.
+| Kategori | Algoritma |
+|----------|-----------|
+| [Cryptographic Hash](Codes/Hash/Cryptographic/) | BLAKE, Keccak, MD keluarga, RIPEMD, SHA keluarga, Skein, Whirlpool, dan lainnya |
+| [Non-Cryptographic Hash](Codes/Hash/Non-Cryptographic/) | APHash, DJBHash, FNV, Jenkins, MurmurHash, PearsonHash, dan lainnya |
 
-Yang harus kamu lakukan:
+Lihat [indeks implementasi lengkap](Codes/README.md).
 
-- melakukan pull request.
-- mengirimkan email ke pengurus [at] reversing.id
-- memberi tahu di telegram @ReversingID
+### Referensi
 
-Diharapkan agar segala referensi yang ada menggunakan Bahasa Indonesia sebagai sarana penyampaian informasi.
+Direktori [`References/`](References/) berisi artikel, analisis, dan dokumentasi mendalam tentang berbagai algoritma kriptografi.
+
+- [`Classical/`](References/Classical/) — Kriptografi klasik (substitusi, transposisi)
+- [`Modern/`](References/Modern/) — Kriptografi modern (block cipher, stream cipher, hash, asimetris)
+- [`Modern/Structure/`](References/Modern/Structure/) — Struktur kriptografi dasar (Feistel, SPN, Sponge, dsb.)
+
+Lihat [indeks referensi lengkap](References/README.md).
+
+### Alat
+
+Direktori [`Tools/`](Tools/) berisi dokumentasi penggunaan peralatan analisis kriptografi.
+
+| Alat | Keterangan |
+|------|-----------|
+| [CrypTool](Tools/CrypTool/) | Perangkat lunak open source untuk mempelajari dan menganalisis algoritma kriptografi secara visual |
+| [Cryptol](Tools/cryptol/) | Domain-Specific Language untuk spesifikasi dan verifikasi algoritma kriptografi |
+
+---
+
+## Berkontribusi
+
+Repositori ini terbuka untuk semua orang. Kontribusi dapat berupa kode implementasi, referensi, analisis, maupun perbaikan konten yang sudah ada.
+
+Baca [CONTRIBUTING.md](CONTRIBUTING.md) untuk panduan lengkap.
