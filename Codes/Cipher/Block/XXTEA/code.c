@@ -4,15 +4,21 @@
     Block Cipher
 
 Compile:
-    (msvc)
-    $ cl code.c
+    (msvc, standalone — does not use main.c or mode.c)
+    $ cl XXTEA/code.c
+
+    (gcc, standalone)
+    $ gcc -o test XXTEA/code.c
 
 Assemble:
     (gcc)
-    $ gcc -m32 -S -masm=intel -o code.asm code.c
+    $ gcc -m32 -S -masm=intel -o XXTEA/code.asm XXTEA/code.c
 
     (msvc)
-    $ cl /c /FaBBS.asm code.c
+    $ cl /c /FaXXTEA/code.asm XXTEA/code.c
+
+Note:
+    Variable-length blocks; demo main() is in this file. Harness build not used.
 */
 #include <stdint.h>
 
@@ -22,9 +28,6 @@ Assemble:
 /* ********************* INTERNAL FUNCTIONS PROTOTYPE ********************* */
 void block_encrypt (uint32_t * val, uint32_t N, uint32_t key[4]);
 void block_decrypt (uint32_t * val, uint32_t N, uint32_t key[4]);
-
-
-/* ********************* MODE OF OPERATIONS PROTOTYPE ********************* */
 
 
 /* ************************ CRYPTOGRAPHY ALGORITHM ************************ */
@@ -98,12 +101,6 @@ block_decrypt(uint32_t * val, uint32_t N, uint32_t key[4])
 
 
 /* *************************** HELPER  FUNCTIONS *************************** */
-
-
-/* ******************* MODE OF OPERATIONS IMPLEMENTATION ******************* */
-
-
-
 
 
 /* *************************** CONTOH PENGGUNAAN *************************** */

@@ -3,79 +3,21 @@
     Archive of Reversing.ID
 
     Unified code to test the implementation of cryptographic algorithm.
-    Use this along with the algorithm code.c
+    Use this along with mode.c and the algorithm code.c.
 
-    Eliminate the need to implement main function for each algorithm.
+    Encryption modes (ECB, CBC, etc.) are implemented in mode.c.
 
 Compile:
-    (msvc)
-    $ cl main.c code.c
+    (msvc, from Codes/Cipher/Block/)
+    $ cl /I. main.c mode.c <CipherDir>/code.c
+
+    (gcc, from Codes/Cipher/Block/)
+    $ gcc -I. -o test main.c mode.c <CipherDir>/code.c
 */
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-
-/* ********************* PROTOTYPES ********************* */
-void encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
-void decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
-
-void encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-
-void encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-
-void encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * nonce);
-void decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * nonce);
-
-void encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-
-void encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-
-/*
-
-*/
-typedef enum { ECB, CBC, CFB, CTR, OFB, PCBC } MODE;
-
-void encrypt(MODE mode, uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
-{
-    switch (mode)
-    {
-        case ECB:  encrypt_ecb(data, length, key);
-            break;
-        case CBC:  encrypt_cbc(data, length, key, iv);
-            break;
-        case CFB:  encrypt_cfb(data, length, key, iv);
-            break;
-        case CTR:  encrypt_ctr(data, length, key, iv);      // gunakan IV sebagai nonce
-            break;
-        case OFB:  encrypt_ofb(data, length, key, iv);
-            break;
-        case PCBC: encrypt_pcbc(data, length, key, iv);
-            break;
-    }
-}
-
-void decrypt(MODE mode, uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
-{
-    switch (mode)
-    {
-        case ECB:  decrypt_ecb(data, length, key);
-            break;
-        case CBC:  decrypt_cbc(data, length, key, iv);
-            break;
-        case CFB:  decrypt_cfb(data, length, key, iv);
-            break;
-        case CTR:  decrypt_ctr(data, length, key, iv);      // gunakan IV sebagai nonce
-            break;
-        case OFB:  decrypt_ofb(data, length, key, iv);
-            break;
-        case PCBC: decrypt_pcbc(data, length, key, iv);
-            break;
-    }
-}
+#include "mode.h"
 
 void printx(const char * label, const uint8_t * data, size_t length)
 {
@@ -129,7 +71,7 @@ int main(int argc, char* argv[])
 
     length = strlen(data);
     printf("Length: %d - Buffer: %s\n", length, data);
-    printx("Original", data, size);
+    printx("Original", (const uint8_t *)data, size);
 
     /*
     Inisialisasi setiap buffer dengan 0
@@ -144,13 +86,13 @@ int main(int argc, char* argv[])
 
     gunakan mode untuk mengganti mode enkripsi yang digunakan.
     */
-    encrypt(ECB, buffer, size, key, iv);
+    encrypt(MODE_ECB, buffer, size, key, iv);
     printx("Encrypted", buffer, size);
 
     /*
     Proses dekripsi
     */
-    decrypt(ECB, buffer, size, key, iv);
+    decrypt(MODE_ECB, buffer, size, key, iv);
     printx("Decrypted", buffer, size);
 
     printf("\nFinal: %s\n", buffer);

@@ -4,15 +4,20 @@
     Block Cipher
 
 Compile:
-    (msvc)
-    $ cl code.c
+    (msvc, from Codes/Cipher/Block/)
+    $ cl /I. main.c mode.c CLEFIA/code.c
+
+    (gcc, from Codes/Cipher/Block/)
+    $ gcc -I. -o test main.c mode.c CLEFIA/code.c
+
+    Modes of operation are in mode.c (not in this file).
 
 Assemble:
     (gcc)
-    $ gcc -m32 -S -masm=intel -o code.asm code.c
+    $ gcc -m32 -S -masm=intel -o CLEFIA/code.asm CLEFIA/code.c
 
     (msvc)
-    $ cl /c /FaBBS.asm code.c
+    $ cl /c /FaCLEFIA/code.asm CLEFIA/code.c
 */
 #include <stdint.h>
 #include <string.h>
@@ -125,32 +130,6 @@ void clefia_gfn8(uint8_t * y, const uint8_t * x, const uint8_t * rk, int32_t rou
 void clefia_gfn4_inv(uint8_t * y, const uint8_t * x, const uint8_t * rk, int32_t round);
 void clefia_double_swap(uint8_t * lk);
 void clefia_con_set(uint8_t * con, const uint8_t * iv, int32_t lk);
-
-
-/* ********************* MODE OF OPERATIONS PROTOTYPE ********************* */
-/** Electronic Code Book mode **/
-void encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
-void decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key);
-
-/** Cipher Block Chaining mode **/
-void encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-
-/** Cipher Feedback mode **/
-void encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-
-/** Counter mode **/
-void encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
-void decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce);
-
-/** Output Feedback mode **/
-void encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-
-/** Propagating Cipher Block Chaining mode **/
-void encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
-void decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv);
 
 
 /* ************************ CRYPTOGRAPHY ALGORITHM ************************ */
@@ -541,366 +520,26 @@ key_setup(clefia_t * config, const uint8_t * skey, uint32_t bits)
 
     return config->round;   /* invalid key_bitlen */
 }
+/* cipher port for mode.c */
+#include "cipher_port.h"
 
+const uint32_t CIPHER_BLOCK_BYTES = BLOCKSIZEB;
+const uint32_t CIPHER_KEY_BYTES   = KEYSIZEB;
 
-/* *************************** HELPER FUNCTIONS *************************** */
-/* Xor 2 block data */
-void 
-xor_block(uint8_t * dst, uint8_t * src1, uint8_t * src2)
+void
+cipher_ctx_init(uint8_t *ctx, const uint8_t *key)
 {
-    byte_xor(dst, src1, src2, BLOCKSIZEB);
+    key_setup((clefia_t *)ctx, key, KEYSIZE);
 }
 
-
-/* ******************* MODE OF OPERATIONS IMPLEMENTATION ******************* */
-/*
-    Enkripsi block data dengan mode ECB.
-    Enkripsi diberlakukan secara independen tanpa ada hubungan dengan block
-    sebelum dan berikutnya.
-    Pastikan jumlah block valid.
-*/
-void 
-encrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
+void
+cipher_encrypt_block(uint8_t *ctx, uint8_t *block)
 {
-    uint32_t   i;
-    clefia_t   config;
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-
-    for (i = 0; i < length; i += BLOCKSIZEB)
-        block_encrypt(&config, &data[i]);
+    block_encrypt((clefia_t *)ctx, block);
 }
 
-/*
-    Dekripsi block data dengan mode ECB.
-    Dekripsi diberlakukan secara independen tanpa ada hubungan dengan block
-    sebelum dan berikutnya.
-    Pastikan jumlah block valid.
-*/
-void 
-decrypt_ecb(uint8_t * data, uint32_t length, uint8_t * key)
+void
+cipher_decrypt_block(uint8_t *ctx, uint8_t *block)
 {
-    uint32_t   i;
-    clefia_t   config;
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-
-    for(i = 0; i < length; i += BLOCKSIZEB)
-        block_decrypt(&config, &data[i]);
-}
-
-
-/*
-    Enkripsi block data dengan mode CBC.
-    Sebelum enkripsi, plaintext akan di-XOR dengan block sebelumnya.
-    Pastikan jumlah block valid.
-*/
-void 
-encrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
-{
-    uint32_t   i;
-    clefia_t   config;
-    uint8_t  * prev_block = iv;
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-
-    for (i = 0; i < length; i += BLOCKSIZEB)
-    {
-        // XOR block plaintext dengan block ciphertext sebelumnya
-        xor_block(&data[i], &data[i], prev_block);
-
-        // Enkripsi plaintext menjadi ciphertext
-        block_encrypt(&config, &data[i]);
-
-        // Simpan block ciphertext untuk operasi XOR selanjutnya
-        prev_block = &data[i];
-    }
-}
-
-/*
-    Dekripsi block data dengan mode CBC.
-    Setelah dekripsi, plaintext akan di-XOR dengan block sebelumnya.
-    Pastikan jumlah block valid.
-*/
-void 
-decrypt_cbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
-{
-    uint32_t   i;
-    clefia_t   config;
-    uint8_t    prev_block[BLOCKSIZEB];
-    uint8_t    cipher_block[BLOCKSIZEB];
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-    
-    memcpy(prev_block, iv, 16);
-
-    for (i = 0; i < length; i += BLOCKSIZEB)
-    {
-        // Simpan block ciphertext untuk operasi XOR berikutnya.
-        memcpy(cipher_block, &data[i], BLOCKSIZEB);
-
-        // Dekripsi ciphertext menjadi block
-        block_decrypt(&config, &data[i]);
-
-        // XOR block block dengan block ciphertext sebelumnya
-        // gunakan IV bila ini adalah block pertama
-        xor_block(&data[i], &data[i], prev_block);
-
-        // Pindahkan block ciphertext yang telah disimpan
-        memcpy(prev_block, cipher_block, BLOCKSIZEB);
-    }
-}
-
-
-/*
-    Enkripsi block data dengan mode CFB.
-    Pastikan jumlah block valid.
-*/
-void 
-encrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
-{
-    uint32_t   i;
-    clefia_t   config;
-    uint8_t    prev_block[BLOCKSIZEB];
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-
-    memcpy(prev_block, iv, BLOCKSIZEB);
-
-    for (i = 0; i < length; i += BLOCKSIZEB)
-    {
-        // Enkripsi block sebelumnya
-        // gunakan IV bila ini block pertama
-        block_encrypt(&config, prev_block);
-
-        // XOR dengan plaintext untuk mendapatkan ciphertext
-        xor_block(&data[i], &data[i], prev_block);
-
-        // Simpan block ciphertext untuk operasi XOR berikutnya
-        memcpy(prev_block, &data[i], BLOCKSIZEB);
-    }
-}
-
-/*
-    Dekripsi block data dengan mode CFB.
-    Pastikan jumlah block valid.
-*/
-void 
-decrypt_cfb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
-{
-    uint32_t   i;
-    clefia_t   config;
-    uint8_t    prev_block[BLOCKSIZEB];
-    uint8_t    ctext_block[BLOCKSIZEB];
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-
-    memcpy(prev_block, iv, BLOCKSIZEB);
-
-    for (i = 0; i < length; i += BLOCKSIZEB)
-    {
-        // Simpan block cipher untuk operasi
-        memcpy(ctext_block, &data[i], BLOCKSIZEB);
-
-        // Enkripsi block sebelumnya
-        // gunakan IV bila ini block pertama
-        block_encrypt(&config, prev_block);
-
-        // XOR dengan plaintext untuk mendapatkan ciphertext
-        xor_block(&data[i], &data[i], prev_block);
-
-        // Simpan block ciphertext untuk operasi XOR berikutnya
-        memcpy(prev_block, ctext_block, BLOCKSIZEB);
-    }
-}
-
-/*
-    Enkripsi block data dengan mode CTR.
-    Pastikan jumlah block valid.
-*/
-void 
-encrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
-{
-    uint32_t   i;
-    clefia_t   config;
-    uint8_t    local_nonce[BLOCKSIZEB];
-    uint32_t * nonce_counter = (uint32_t*)&local_nonce[BLOCKSIZEB-4];
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-    
-    memcpy(local_nonce, nonce, BLOCKSIZEB);
-
-    for (i = 0; i < length; i += BLOCKSIZEB)
-    {
-        // Enkripsi nonce + counter
-        block_encrypt(&config, local_nonce);
-
-        // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
-        xor_block(&data[i], &data[i], local_nonce);
-
-        // Naikkan nilai nonce dengan 1.
-        (*nonce_counter) ++;
-    }
-}
-
-/*
-    Enkripsi block data dengan mode CTR.
-    Pastikan jumlah block valid.
-*/
-void 
-decrypt_ctr(uint8_t * data, uint32_t length, uint8_t * key, uint8_t *nonce)
-{
-    uint32_t   i;
-    clefia_t   config;
-    uint8_t    local_nonce[BLOCKSIZEB];
-    uint32_t * nonce_counter = (uint32_t*)&local_nonce[BLOCKSIZEB-4];
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-    
-    memcpy(local_nonce, nonce, BLOCKSIZEB);
-
-    for (i = 0; i < length; i += BLOCKSIZEB)
-    {
-        // Enkripsi nonce + counter
-        block_encrypt(&config, local_nonce);
-
-        // XOR nonce terenkripsi dengan plaintext untuk mendapatkan ciphertext.
-        xor_block(&data[i], &data[i], local_nonce);
-
-        // Naikkan nilai nonce dengan 1.
-        (*nonce_counter) ++;
-    }
-}
-
-
-/*
-    Enkripsi block data dengan mode OFB.
-    Pastikan jumlah block valid.
-*/
-void 
-encrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
-{
-    uint32_t   i;
-    clefia_t   config;
-    uint8_t    prev_block[BLOCKSIZEB];
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-    
-    memcpy(prev_block, iv, BLOCKSIZEB);
-    
-    for (i = 0; i < length; i += BLOCKSIZEB)
-    {
-        // Enkripsi block sebelumnya 
-        // gunakan IV bila ini block pertama
-        block_encrypt(&config, prev_block);
-
-        // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
-        xor_block(&data[i], &data[i], prev_block);
-    }
-}
-
-/*
-    Dekripsi block data dengan mode OFB.
-    Pastikan jumlah block valid.
-*/
-void 
-decrypt_ofb(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
-{
-    uint32_t   i;
-    clefia_t   config;
-    uint8_t    prev_block[BLOCKSIZEB];
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-    
-    memcpy(prev_block, iv, BLOCKSIZEB);
-    
-    for (i = 0; i < length; i += BLOCKSIZEB)
-    {
-        // Enkripsi block sebelumnya 
-        // gunakan IV bila ini block pertama
-        block_encrypt(&config, prev_block);
-
-        // XOR plaintext dengan output dari enkripsi untuk mendapatkan ciphertext.
-        xor_block(&data[i], &data[i], prev_block);
-    }
-}
-
-
-/*
-    Enkripsi block data dengan mode OFB.
-    Pastikan jumlah block valid.
-*/
-void 
-encrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
-{
-    uint32_t   i;
-    clefia_t   config;
-    uint8_t    prev_block[BLOCKSIZEB];
-    uint8_t    ptext_block[BLOCKSIZEB];
-
-    // Setup configuration
-    key_setup(&config, key, KEYSIZE);
-    
-    memcpy(prev_block, iv, BLOCKSIZEB);
-
-    for (i = 0; i < length; i += BLOCKSIZEB)
-    {
-        // Simpan plaintext untuk dioperasikan dengan block berikutnya.
-        memcpy(ptext_block, &data[i], BLOCKSIZEB);
-
-        // XOR plaintext dengan block sebelumnya
-        // gunakan IV bila ini block pertama
-        xor_block(&data[i], &data[i], prev_block);
-
-        // Enkripsi
-        block_encrypt(&config, &data[i]);
-
-        // Hitung block berikutnya
-        xor_block(prev_block, ptext_block, &data[i]);
-    }
-}
-
-/*
-    Dekripsi block data dengan mode OFB.
-    Pastikan jumlah block valid.
-*/
-void 
-decrypt_pcbc(uint8_t * data, uint32_t length, uint8_t * key, uint8_t * iv)
-{
-    uint32_t   i;
-    clefia_t   config;
-    uint8_t    prev_block[BLOCKSIZEB];
-    uint8_t    ctext_block[BLOCKSIZEB];
-
-    // Setup configuration
-    config.bits = 128;
-    key_setup(&config, key, KEYSIZE);
-    
-    memcpy(prev_block, iv, 16);
-
-    for (i = 0; i < length; i += BLOCKSIZEB)
-    {
-        // Simpan ciphertext untuk dioperasikan dengan block berikutnya.
-        memcpy(ctext_block, &data[i], BLOCKSIZEB);
-
-        // Dekripsi ciphertext untuk mendapatkan plaintext ter-XOR
-        block_decrypt(&config, &data[i]);
-
-        // XOR dengan block sebelumnya
-        // gunakan IV bila ini block pertama
-        xor_block(&data[i], &data[i], prev_block);
-
-        // Hitung block berikutnya
-        xor_block(prev_block, ctext_block, &data[i]);
-    }
+    block_decrypt((clefia_t *)ctx, block);
 }

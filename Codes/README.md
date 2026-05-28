@@ -25,6 +25,19 @@ Setiap implementasi berdiri sendiri tanpa ketergantungan pada library kriptograf
 
 Direktori: [`Cipher/Block/`](Cipher/Block/)
 
+Mode operasi block cipher (ECB, CBC, CFB, CTR, OFB, PCBC) diimplementasikan sekali di [`Cipher/Block/mode.c`](Cipher/Block/mode.c). Setiap algoritma hanya berisi primitif (`block_encrypt` / `block_decrypt`) dan adaptor [`cipher_port.h`](Cipher/Block/cipher_port.h).
+
+**Build (dari `Codes/Cipher/Block/`):**
+
+```text
+gcc -I. -o test main.c mode.c <CipherDir>/code.c
+cl /I. main.c mode.c <CipherDir>/code.c
+```
+
+Teori mode: [`References/Modern/Encryption-Mode/`](../References/Modern/Encryption-Mode/).
+
+**Pengecualian:** [`XXTEA`](Cipher/Block/XXTEA/) memakai `main()` sendiri dan tidak memakai `main.c` / `mode.c`. [`RC6`](Cipher/Block/RC6/) belum lengkap (belum ada `cipher_port`).
+
 | Algoritma | Keterangan |
 |-----------|-----------|
 | [3-Way](Cipher/Block/3-Way/) | |
