@@ -106,6 +106,8 @@ Direktori: [`Cipher/Stream/`](Cipher/Stream/)
 
 Setiap algoritma hanya berisi primitif stream cipher dan adaptor [`stream_port.h`](Cipher/Stream/stream_port.h). Demo harness ada di [`main.c`](Cipher/Stream/main.c).
 
+Port mengekspor `STREAM_KEY_BYTES`, `STREAM_NONCE_BYTES`, dan `STREAM_COUNTER_BYTES` per algoritma, serta `stream_encrypt` / `stream_decrypt` dengan argumen `key`, `nonce`, dan `counter` terpisah. Ukuran buffer maksimum harness ada di komentar [`main.c`](Cipher/Stream/main.c) (key 32, nonce 16, counter 4).
+
 **Build (dari `Codes/Cipher/Stream/`):**
 
 ```text
@@ -113,7 +115,7 @@ gcc -I. -o test main.c <CipherDir>/code.c
 cl /I. main.c <CipherDir>/code.c
 ```
 
-**Catatan:** ChaCha20, Loiss, SAVILLE, dan SNOW masih stub — dapat dikompilasi dan di-link, tetapi `stream_encrypt` / `stream_decrypt` belum mengenkripsi data sampai implementasi selesai.
+**Catatan:** SAVILLE masih stub — algoritma bersifat classified (NSA Suite A) sehingga tidak ada spesifikasi publik untuk diimplementasikan.
 
 | Algoritma | Keterangan |
 |-----------|-----------|
