@@ -248,21 +248,47 @@ expand32(salsa20_t * config)
 /* stream port for main.c */
 #include "stream_port.h"
 
-const uint32_t STREAM_KEY_BYTES   = 32;
-const uint32_t STREAM_NONCE_BYTES = 16;
+const uint32_t STREAM_KEY_BYTES     = 32;
+const uint32_t STREAM_NONCE_BYTES   =  8;
+const uint32_t STREAM_COUNTER_BYTES =  0;
+
+/*
+ * stream_port contract
+ *
+ * Variant : Salsa20/256 (expand 32-byte k).
+ *
+ * STREAM_KEY_BYTES     = 32 — key[0..31], 256-bit key.
+ * STREAM_NONCE_BYTES   =  8 — nonce[0..7], 64-bit nonce.
+ * STREAM_COUNTER_BYTES =  0 — counter unused; block counter starts at 0 inside
+ *                             stream_crypt() and is not taken from the port.
+ *
+ * stream_decrypt : same mapping as stream_encrypt.
+ */
 
 void
-stream_encrypt(uint8_t *data, size_t length, const uint8_t *key, const uint8_t *nonce)
+stream_encrypt(
+    uint8_t *data, 
+    size_t  length, 
+    const uint8_t *key,
+    const uint8_t *nonce, 
+    const uint8_t *counter)
 {
     salsa20_t config;
+    (void)counter;
     key_setup(&config, (uint8_t *)key, 256, (uint8_t *)nonce);
     stream_crypt(&config, data, length);
 }
 
 void
-stream_decrypt(uint8_t *data, size_t length, const uint8_t *key, const uint8_t *nonce)
+stream_decrypt(
+    uint8_t *data, 
+    size_t  length, 
+    const uint8_t *key,
+    const uint8_t *nonce, 
+    const uint8_t *counter)
 {
     salsa20_t config;
+    (void)counter;
     key_setup(&config, (uint8_t *)key, 256, (uint8_t *)nonce);
     stream_crypt(&config, data, length);
 }

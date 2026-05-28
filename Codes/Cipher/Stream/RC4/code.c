@@ -88,21 +88,47 @@ key_setup(rc4_t * config, const uint8_t * key, size_t length)
 /* stream port for main.c */
 #include "stream_port.h"
 
-const uint32_t STREAM_KEY_BYTES   = 32;
-const uint32_t STREAM_NONCE_BYTES = 0;
+const uint32_t STREAM_KEY_BYTES     = 32;
+const uint32_t STREAM_NONCE_BYTES   =  0;
+const uint32_t STREAM_COUNTER_BYTES =  0;
+
+/*
+ * stream_port contract
+ *
+ * STREAM_KEY_BYTES     = 32 — key[0..31], KSA key material.
+ * STREAM_NONCE_BYTES   =  0 — nonce unused (RC4 has no IV in this harness).
+ * STREAM_COUNTER_BYTES =  0 — counter unused.
+ *
+ * stream_decrypt : same mapping as stream_encrypt.
+ */
 
 void
-stream_encrypt(uint8_t *data, size_t length, const uint8_t *key, const uint8_t *nonce)
+stream_encrypt(
+    uint8_t *data, 
+    size_t length, 
+    const uint8_t *key,
+    const uint8_t *nonce, 
+    const uint8_t *counter)
 {
     rc4_t config;
+    (void)nonce;
+    (void)counter;
     key_setup(&config, key, STREAM_KEY_BYTES);
     stream_crypt(&config, data, length);
 }
 
 void
-stream_decrypt(uint8_t *data, size_t length, const uint8_t *key, const uint8_t *nonce)
+stream_decrypt(
+    uint8_t *data, 
+    size_t length, 
+    const uint8_t *key,
+    const uint8_t *nonce, 
+    const uint8_t *counter
+)
 {
     rc4_t config;
+    (void)nonce;
+    (void)counter;
     key_setup(&config, key, STREAM_KEY_BYTES);
     stream_crypt(&config, data, length);
 }

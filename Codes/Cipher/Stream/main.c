@@ -37,13 +37,13 @@ int main(int argc, char* argv[])
     uint8_t  buffer[64];
 
     /*
-    secret key: 32-bytes
-    Key dengan panjang maksimal untuk mengakomodasi beragam panjang key.
+    Harness buffer sizes (maximum across all stream ciphers in this tree).
+    Each linked build reads only STREAM_KEY_BYTES, STREAM_NONCE_BYTES, and
+    STREAM_COUNTER_BYTES from stream_port.h; unused trailing bytes are ignored.
 
-    - 64-bit (8-byte)
-    - 128-bit (16-byte)
-    - 192-bit (24-byte)
-    - 256-bit (32-byte)
+    - key[32]     : up to 256-bit key (all ciphers)
+    - nonce[16]   : up to 128-bit IV / nonce (SNOW, Loiss, Salsa20 partial, …)
+    - counter[4]  : up to 32-bit block counter (ChaCha20)
     */
     uint8_t key[32] = {
             0x52, 0x45, 0x56, 0x45, 0x52, 0x53, 0x49, 0x4E, 0x47, 0x2E, 0x49, 0x44,
@@ -55,7 +55,11 @@ int main(int argc, char* argv[])
 
     uint8_t nonce[16] = {
         0x13, 0x51, 0x00, 0x30, 0xD7, 0xA4, 0xC5, 0xAE,
-        0xCB, 0x55, 0xA7, 0x1C, 0x25, 0x3F, 0x41, 0x4D
+        0xCB, 0x55, 0xA7, 0x1C, 0x00, 0x00, 0x00, 0x00
+    };
+
+    uint8_t counter[4] = {
+        0x25, 0x3F, 0x41, 0x4D
     };
 
     length = strlen(data);
@@ -65,10 +69,10 @@ int main(int argc, char* argv[])
     memset(buffer, 0, sizeof(buffer));
     memcpy(buffer, data, length);
 
-    stream_encrypt(buffer, length, key, nonce);
+    stream_encrypt(buffer, length, key, nonce, counter);
     printx("Encrypted", buffer, length);
 
-    stream_decrypt(buffer, length, key, nonce);
+    stream_decrypt(buffer, length, key, nonce, counter);
     printx("Decrypted", buffer, length);
 
     printf("\nFinal: %s\n", buffer);
