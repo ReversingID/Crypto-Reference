@@ -190,6 +190,8 @@ key_setup(lea_t * config, uint8_t * secret, uint32_t bits)
         }
     }
 }
+
+
 /* cipher port for mode.c */
 #include "cipher_port.h"
 

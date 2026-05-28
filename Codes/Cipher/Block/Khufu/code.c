@@ -163,9 +163,22 @@ gen_sbox(uint8_t * sbox,uint8_t * key, uint32_t round)
             (key[(round * 8 + i + 3) % KEYSIZEB]);
     }
 }
+
+
+/* cipher port for mode.c */
 #include "cipher_port.h"
+
 const uint32_t CIPHER_BLOCK_BYTES = BLOCKSIZEB;
 const uint32_t CIPHER_KEY_BYTES   = KEYSIZEB;
-void cipher_ctx_init(uint8_t *ctx, const uint8_t *key) { memcpy(ctx, key, KEYSIZEB); }
-void cipher_encrypt_block(uint8_t *ctx, uint8_t *block) { block_encrypt(block, (uint8_t *)ctx); }
-void cipher_decrypt_block(uint8_t *ctx, uint8_t *block) { block_decrypt(block, (uint8_t *)ctx); }
+
+void
+cipher_ctx_init(uint8_t *ctx, const uint8_t *key)
+{
+    memcpy(ctx, key, KEYSIZEB);
+}
+
+void
+cipher_encrypt_block(uint8_t *ctx, uint8_t *block)
+{
+    block_encrypt(block, (uint8_t *)ctx);
+}

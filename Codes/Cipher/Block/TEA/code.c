@@ -134,6 +134,8 @@ block_decrypt(uint8_t * val, uint8_t * key)
     p_val[0] = convert(v0);
     p_val[1] = convert(v1);
 }
+
+
 /* cipher port for mode.c */
 #include "cipher_port.h"
 

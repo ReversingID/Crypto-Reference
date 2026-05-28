@@ -448,6 +448,8 @@ do_ir (uint8_t val[BLOCKSIZEB], uint8_t * kp)
     val[14] = _expf[val[14] ^ kp[30]] - kp[14];
     val[15] = _logf[val[15] - kp[31] + 256] ^ kp[15];
 }
+
+
 /* cipher port for mode.c */
 #include "cipher_port.h"
 

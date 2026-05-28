@@ -221,6 +221,8 @@ void block_crypt(lucifer_t * config, uint8_t val[BLOCKSIZEB])
         *cp  = byte;
     }
 }
+
+
 /* cipher port for mode.c */
 #include "cipher_port.h"
 

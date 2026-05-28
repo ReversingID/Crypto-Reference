@@ -506,6 +506,8 @@ void r_ktr(mars_t * config, uint32_t * a, uint32_t * b, uint32_t * c, uint32_t *
    *d ^= r;
    *b -= rotl(l, r);
 }
+
+
 /* cipher port for mode.c */
 #include "cipher_port.h"
 
