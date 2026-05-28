@@ -36,7 +36,7 @@ cl /I. main.c mode.c <CipherDir>/code.c
 
 Teori mode: [`References/Modern/Encryption-Mode/`](../References/Modern/Encryption-Mode/).
 
-**Pengecualian:** [`XXTEA`](Cipher/Block/XXTEA/) memakai `main()` sendiri dan tidak memakai `main.c` / `mode.c`. [`RC6`](Cipher/Block/RC6/) belum lengkap (belum ada `cipher_port`).
+**Pengecualian:** [`XXTEA`](Cipher/Block/XXTEA/) memakai `main()` sendiri dan tidak memakai `main.c` / `mode.c`.
 
 | Algoritma | Keterangan |
 |-----------|-----------|
@@ -53,6 +53,7 @@ Teori mode: [`References/Modern/Encryption-Mode/`](../References/Modern/Encrypti
 | [LEA](Cipher/Block/LEA/) | Lightweight Encryption Algorithm |
 | [Lucifer](Cipher/Block/Lucifer/) | Pendahulu DES |
 | [MARS](Cipher/Block/MARS/) | AES finalist |
+| [RC6](Cipher/Block/RC6/) | AES finalist |
 | [SAFER](Cipher/Block/SAFER/) | |
 | [TEA](Cipher/Block/TEA/) | Tiny Encryption Algorithm |
 | [Treyfer](Cipher/Block/Treyfer/) | |
