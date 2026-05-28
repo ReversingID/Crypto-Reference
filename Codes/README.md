@@ -104,6 +104,17 @@ Direktori: [`Cipher/Classic/Transposition/`](Cipher/Classic/Transposition/)
 
 Direktori: [`Cipher/Stream/`](Cipher/Stream/)
 
+Setiap algoritma hanya berisi primitif stream cipher dan adaptor [`stream_port.h`](Cipher/Stream/stream_port.h). Demo harness ada di [`main.c`](Cipher/Stream/main.c).
+
+**Build (dari `Codes/Cipher/Stream/`):**
+
+```text
+gcc -I. -o test main.c <CipherDir>/code.c
+cl /I. main.c <CipherDir>/code.c
+```
+
+**Catatan:** ChaCha20, Loiss, SAVILLE, dan SNOW masih stub — dapat dikompilasi dan di-link, tetapi `stream_encrypt` / `stream_decrypt` belum mengenkripsi data sampai implementasi selesai.
+
 | Algoritma | Keterangan |
 |-----------|-----------|
 | [ChaCha20](Cipher/Stream/ChaCha20/) | Varian Salsa20 oleh Bernstein |

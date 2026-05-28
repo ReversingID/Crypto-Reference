@@ -4,15 +4,20 @@
     Stream Cipher
 
 Compile:
-    (msvc)
-    $ cl code.c
+    (msvc, from Codes/Cipher/Stream/)
+    $ cl /I. main.c Salsa20/code.c
+
+    (gcc, from Codes/Cipher/Stream/)
+    $ gcc -I. -o test main.c Salsa20/code.c
+
+    Demo harness is in main.c (not in this file).
 
 Assemble:
     (gcc)
-    $ gcc -m32 -S -masm=intel -o code.asm code.c
+    $ gcc -m32 -S -masm=intel -o Salsa20/code.asm Salsa20/code.c
 
     (msvc)
-    $ cl /c /FaBBS.asm code.c
+    $ cl /c /FaSalsa20/code.asm Salsa20/code.c
 */
 
 #include <stdint.h>
@@ -78,9 +83,6 @@ void double_round(uint32_t x[16]);
 void hash(uint8_t data[64]);
 
 
-/* ******************************* HELPERS ******************************* */
-
-
 /* ************************ CRYPTOGRAPHY ALGORITHM ************************ */
 void 
 stream_crypt(salsa20_t * config, uint8_t * data, uint32_t length)
@@ -108,10 +110,8 @@ stream_crypt(salsa20_t * config, uint8_t * data, uint32_t length)
     config->index = (length + idx) % 64;
 }
 
-/*
-    Membangun internal states berdasarkan key
-*/
-void key_setup(salsa20_t * config, uint8_t * key, uint32_t keybits, uint8_t nonce[16])
+void 
+key_setup(salsa20_t * config, uint8_t * key, uint32_t keybits, uint8_t nonce[16])
 {
     uint32_t i;
     uint32_t * p_nonce = (uint32_t*)config->nonce;
@@ -128,7 +128,8 @@ void key_setup(salsa20_t * config, uint8_t * key, uint32_t keybits, uint8_t nonc
 
 
 /* ******************* INTERNAL FUNCTIONS IMPLEMENTATION ******************* */
-void quarter_round(uint32_t * y0, uint32_t * y1, uint32_t * y2, uint32_t * y3)
+void 
+quarter_round(uint32_t * y0, uint32_t * y1, uint32_t * y2, uint32_t * y3)
 {
     *y1 ^= rotl(*y0 + *y3,  7);
     *y2 ^= rotl(*y1 + *y0,  9);
@@ -136,7 +137,8 @@ void quarter_round(uint32_t * y0, uint32_t * y1, uint32_t * y2, uint32_t * y3)
     *y0 ^= rotl(*y3 + *y2, 18);
 }
 
-void row_round(uint32_t val[16])
+void 
+row_round(uint32_t val[16])
 {
     quarter_round(&val[ 0], &val[ 1], &val[ 2], &val[ 3]);
     quarter_round(&val[ 5], &val[ 6], &val[ 7], &val[ 4]);
@@ -144,7 +146,8 @@ void row_round(uint32_t val[16])
     quarter_round(&val[15], &val[12], &val[13], &val[14]);
 }
 
-void column_round(uint32_t val[16])
+void 
+column_round(uint32_t val[16])
 {
     quarter_round(&val[ 0], &val[ 4], &val[ 8], &val[12]);
     quarter_round(&val[ 5], &val[ 9], &val[13], &val[ 1]);
@@ -152,13 +155,15 @@ void column_round(uint32_t val[16])
     quarter_round(&val[15], &val[ 3], &val[ 7], &val[11]);
 }
 
-void double_round(uint32_t val[16])
+void 
+double_round(uint32_t val[16])
 {
     column_round(val);
     row_round(val);
 }
 
-void hash(uint8_t seq[64])
+void 
+hash(uint8_t seq[64])
 {
     uint32_t * p_seq = (uint32_t *)seq;
     uint32_t   i;
@@ -177,7 +182,8 @@ void hash(uint8_t seq[64])
     }
 }
 
-void expand16(salsa20_t * config)
+void 
+expand16(salsa20_t * config)
 {
     uint32_t i, j;
     uint8_t  t[4][4] = {
@@ -207,7 +213,8 @@ void expand16(salsa20_t * config)
     hash(keystream);
 }
 
-void expand32(salsa20_t * config)
+void 
+expand32(salsa20_t * config)
 {
     uint32_t i, j;
     uint8_t  t[4][4] = {
@@ -238,75 +245,25 @@ void expand32(salsa20_t * config)
 }
 
 
-/* *********************** HELPERS IMPLEMENTATION *********************** */
+/* stream port for main.c */
+#include "stream_port.h"
 
+const uint32_t STREAM_KEY_BYTES   = 32;
+const uint32_t STREAM_NONCE_BYTES = 16;
 
-/* ************************ WRAPPER ************************ */
-void salsa20_encrypt(uint8_t * data, size_t length, uint8_t * key, size_t keybits, uint8_t nonce[16])
+void
+stream_encrypt(uint8_t *data, size_t length, const uint8_t *key, const uint8_t *nonce)
 {
     salsa20_t config;
-    key_setup(&config, key, keybits, nonce);
+    key_setup(&config, (uint8_t *)key, 256, (uint8_t *)nonce);
     stream_crypt(&config, data, length);
 }
 
-void salsa20_decrypt(uint8_t * data, size_t length, uint8_t * key, size_t keybits, uint8_t nonce[16])
+void
+stream_decrypt(uint8_t *data, size_t length, const uint8_t *key, const uint8_t *nonce)
 {
     salsa20_t config;
-    key_setup(&config, key, keybits, nonce);
+    key_setup(&config, (uint8_t *)key, 256, (uint8_t *)nonce);
     stream_crypt(&config, data, length);
 }
-
-
-/* ************************ CONTOH PENGGUNAAN ************************ */
-#include "../testutil.h"
-#include <stdio.h>
-
-int main(int argc, char* argv[])
-{
-    int  i, length;
-    char data[] = "Reversing.ID - Reverse Engineering Community";
-    char encbuffer[64];
-    char decbuffer[64]; 
-
-    /* 
-    secret key: 32-bytes 
-    Meskipun key didefinisikan sebagai 32-byte karakter, hanya 8 karakter saja yang
-    digunakan, karena bits dikonfigurasi sebagai 64-bit (8-byte).
-    */
-    uint8_t key[32] =
-            { 0x52, 0x45, 0x56, 0x45, 0x52, 0x53, 0x49, 0x4E, 0x47, 0x2E, 0x49, 0x44, 
-    /* ASCII:   R     E     V     E     R     S     I     N     G     .     I     D  */
-              0x53, 0x45, 0x43, 0x52, 0x45, 0x54, 0x20, 0x4b, 0x45, 0x59, 0x31, 0x32,
-            /*  S     E     C     R     E     T           K     E     Y     1     2  */
-              0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30 };
-            /*  3     4     5     6     7     8     9     0 */
-    
-    uint8_t nonce[16] = 
-            { 0x13, 0x51, 0x00, 0x30, 0xD7, 0xA4, 0xC5, 0xAE, 0xCB, 0x55, 0xA7, 0x1C,
-              0x25, 0x3F, 0x41, 0x4D };
-
-    length = strlen(data);
-    printf("Length: %zd - Buffer: %s\n", strlen(data), data);
-    printx("Original", data, length);
-
-    /*
-    Panjang plaintext: 44
-    stream cipher tidak mensyaratkan panjang data dalam kelipatan tertentu.
-    */
-    memset(encbuffer, 0, sizeof(encbuffer));
-    memset(decbuffer, 0, sizeof(decbuffer));
-
-    memcpy(encbuffer, data, length);
-    salsa20_encrypt(encbuffer, length, key, 256, nonce);
-    printx("Encrypted:", encbuffer, length);
-
-    memcpy(decbuffer, encbuffer, length);
-    salsa20_decrypt(decbuffer, length, key, 256, nonce);
-    printx("Decrypted:", decbuffer, length);
-
-    printf("\nFinal: %s\n", decbuffer);
-
-    return 0;
-}
-
 
