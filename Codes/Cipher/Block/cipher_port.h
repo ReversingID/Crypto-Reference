@@ -10,7 +10,8 @@
 
 #include <stdint.h>
 
-#define CIPHER_CTX_MAX 640
+// ensure enough buffer for all block ciphers
+#define CIPHER_CTX_MAX 4352
 
 // Common block and key size, consensus for this repo
 extern const uint32_t CIPHER_BLOCK_BYTES;

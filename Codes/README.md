@@ -58,6 +58,7 @@ Teori mode: [`References/Modern/Encryption-Mode/`](../References/Modern/Encrypti
 | [SAFER](Cipher/Block/SAFER/) | |
 | [Speck](Cipher/Block/Speck/) | |
 | [TEA](Cipher/Block/TEA/) | Tiny Encryption Algorithm |
+| [TwoFish](Cipher/Block/TwoFish/) | AES finalist; successor to Blowfish |
 | [Treyfer](Cipher/Block/Treyfer/) | |
 | [XTEA](Cipher/Block/XTEA/) | Extended TEA |
 | [XXTEA](Cipher/Block/XXTEA/) | Corrected Block TEA |
