@@ -48,6 +48,7 @@ Teori mode: [`References/Modern/Encryption-Mode/`](../References/Modern/Encrypti
 | [Camellia](Cipher/Block/Camellia/) | |
 | [DES](Cipher/Block/DES/) | Data Encryption Standard |
 | [Hierocrypt3](Cipher/Block/Hierocrypt3/) | |
+| [HIGHT](Cipher/Block/HIGHT/) | Lightweight block cipher (ISO/IEC 18033-3) |
 | [KHAZAD](Cipher/Block/KHAZAD/) | |
 | [Khufu](Cipher/Block/Khufu/) | |
 | [LEA](Cipher/Block/LEA/) | Lightweight Encryption Algorithm |
