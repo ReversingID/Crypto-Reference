@@ -56,6 +56,7 @@ Teori mode: [`References/Modern/Encryption-Mode/`](../References/Modern/Encrypti
 | [MARS](Cipher/Block/MARS/) | AES finalist |
 | [RC6](Cipher/Block/RC6/) | AES finalist |
 | [SAFER](Cipher/Block/SAFER/) | |
+| [Speck](Cipher/Block/Speck/) | |
 | [TEA](Cipher/Block/TEA/) | Tiny Encryption Algorithm |
 | [Treyfer](Cipher/Block/Treyfer/) | |
 | [XTEA](Cipher/Block/XTEA/) | Extended TEA |
