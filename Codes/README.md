@@ -52,6 +52,7 @@ Teori mode: [`References/Modern/Encryption-Mode/`](../References/Modern/Encrypti
 | [Khufu](Cipher/Block/Khufu/) | |
 | [LEA](Cipher/Block/LEA/) | Lightweight Encryption Algorithm |
 | [Lucifer](Cipher/Block/Lucifer/) | Pendahulu DES |
+| [Madryga](Cipher/Block/Madryga/) | Block cipher 1984, data-dependent rotations |
 | [MARS](Cipher/Block/MARS/) | AES finalist |
 | [RC6](Cipher/Block/RC6/) | AES finalist |
 | [SAFER](Cipher/Block/SAFER/) | |
