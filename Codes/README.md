@@ -46,6 +46,7 @@ Teori mode: [`References/Modern/Encryption-Mode/`](../References/Modern/Encrypti
 | [CIPHERUNICORN-A](Cipher/Block/CIPHERUNICORN-A/) | |
 | [CLEFIA](Cipher/Block/CLEFIA/) | |
 | [Camellia](Cipher/Block/Camellia/) | |
+| [CAST](Cipher/Block/CAST/) | CAST-128 (CAST5), 64-bit block, RFC 2144 |
 | [DES](Cipher/Block/DES/) | Data Encryption Standard |
 | [Hierocrypt3](Cipher/Block/Hierocrypt3/) | |
 | [HIGHT](Cipher/Block/HIGHT/) | Lightweight block cipher (ISO/IEC 18033-3) |
