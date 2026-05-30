@@ -25,6 +25,7 @@ Note:
 
 #include <stdint.h>
 #include <string.h>
+#include "../byteorder.h"
 
 /* ************************ CONFIGURATION & SEED ************************ */
 #ifdef _MSC_VER
@@ -34,44 +35,6 @@ Note:
 #else
     #define rotr(x,n)   (((x) >> ((int)(n))) | ((x) << (32 - (int)(n))))
     #define rotl(x,n)   (((x) << ((int)(n))) | ((x) >> (32 - (int)(n))))
-#endif
-
-#define bswap32(x)      (rotl(x,8) & 0x00FF00FF | rotr(x, 8) & 0xFF00FF00)
-
-#if !defined(LITTLE_ENDIAN) && !defined(BIG_ENDIAN)
-    #ifdef _MSC_VER
-        #define LITTLE_ENDIAN
-    #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-        #define LITTLE_ENDIAN
-    #elif defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-        #define BIG_ENDIAN
-    #elif defined(__LITTLE_ENDIAN__)
-        #define LITTLE_ENDIAN
-    #else
-        #define BIG_ENDIAN
-    #endif
-#endif
-
-#ifdef LITTLE_ENDIAN
-    #define load32_le(p) \
-        (((uint32_t)(p)[0]) | ((uint32_t)(p)[1] << 8) | \
-         ((uint32_t)(p)[2] << 16) | ((uint32_t)(p)[3] << 24))
-    #define store32_le(p, v) do { \
-        (p)[0] = (uint8_t)(v); \
-        (p)[1] = (uint8_t)((v) >> 8); \
-        (p)[2] = (uint8_t)((v) >> 16); \
-        (p)[3] = (uint8_t)((v) >> 24); \
-    } while (0)
-#else
-    #define load32_le(p)  bswap32(((uint32_t)(p)[0] << 24) | ((uint32_t)(p)[1] << 16) | \
-                                   ((uint32_t)(p)[2] << 8) | (uint32_t)(p)[3])
-    #define store32_le(p, v) do { \
-        uint32_t _t = bswap32(v); \
-        (p)[0] = (uint8_t)(_t >> 24); \
-        (p)[1] = (uint8_t)(_t >> 16); \
-        (p)[2] = (uint8_t)(_t >> 8); \
-        (p)[3] = (uint8_t)(_t); \
-    } while (0)
 #endif
 
 typedef struct chacha20_t {

@@ -21,6 +21,7 @@ Assemble:
 */
 #include <stdint.h>
 #include <string.h>
+#include "../byteorder.h"
 
 /* ************************* CONFIGURATION & SEED ************************* */
 #define BLOCKSIZE   64
@@ -55,35 +56,22 @@ void block_decrypt(uint8_t *data, const uint8_t *key);
 
 
 /* *************************** HELPER FUNCTIONS *************************** */
-static uint16_t
-load_word(const uint8_t *p)
-{
-    return (uint16_t)(((uint16_t)p[0] << 8) | p[1]);
-}
-
-static void
-store_word(uint8_t *p, uint16_t w)
-{
-    p[0] = (uint8_t)(w >> 8);
-    p[1] = (uint8_t)(w & 0xff);
-}
-
 static void
 load_block(const uint8_t *data, uint16_t *w1, uint16_t *w2, uint16_t *w3, uint16_t *w4)
 {
-    *w1 = load_word(data + 0);
-    *w2 = load_word(data + 2);
-    *w3 = load_word(data + 4);
-    *w4 = load_word(data + 6);
+    *w1 = load16_be(data + 0);
+    *w2 = load16_be(data + 2);
+    *w3 = load16_be(data + 4);
+    *w4 = load16_be(data + 6);
 }
 
 static void
 store_block(uint8_t *data, uint16_t w1, uint16_t w2, uint16_t w3, uint16_t w4)
 {
-    store_word(data + 0, w1);
-    store_word(data + 2, w2);
-    store_word(data + 4, w3);
-    store_word(data + 6, w4);
+    store16_be(data + 0, w1);
+    store16_be(data + 2, w2);
+    store16_be(data + 4, w3);
+    store16_be(data + 6, w4);
 }
 
 static uint16_t

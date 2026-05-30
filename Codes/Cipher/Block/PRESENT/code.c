@@ -25,6 +25,7 @@ Note:
 */
 #include <stdint.h>
 #include <string.h>
+#include "../byteorder.h"
 
 /* ************************* CONFIGURATION & SEED ************************* */
 #define BLOCKSIZE       64
@@ -77,8 +78,6 @@ void block_encrypt(present_t *config, uint8_t val[BLOCKSIZEB]);
 void block_decrypt(present_t *config, uint8_t val[BLOCKSIZEB]);
 void key_setup(present_t *config, const uint8_t *secret);
 
-static uint64_t load64_be(const uint8_t *p);
-static void     store64_be(uint8_t *p, uint64_t x);
 static uint64_t sbox_layer(uint64_t state);
 static uint64_t sbox_layer_inv(uint64_t state);
 static uint64_t p_layer(uint64_t state);
@@ -89,28 +88,6 @@ static void xor_round_counter(uint64_t *k_hi, uint64_t *k_lo, int round);
 
 
 /* *************************** HELPER FUNCTIONS *************************** */
-static uint64_t
-load64_be(const uint8_t *p)
-{
-    return ((uint64_t)p[0] << 56) | ((uint64_t)p[1] << 48) |
-           ((uint64_t)p[2] << 40) | ((uint64_t)p[3] << 32) |
-           ((uint64_t)p[4] << 24) | ((uint64_t)p[5] << 16) |
-           ((uint64_t)p[6] <<  8) |  (uint64_t)p[7];
-}
-
-static void
-store64_be(uint8_t *p, uint64_t x)
-{
-    p[0] = (uint8_t)(x >> 56);
-    p[1] = (uint8_t)(x >> 48);
-    p[2] = (uint8_t)(x >> 40);
-    p[3] = (uint8_t)(x >> 32);
-    p[4] = (uint8_t)(x >> 24);
-    p[5] = (uint8_t)(x >> 16);
-    p[6] = (uint8_t)(x >>  8);
-    p[7] = (uint8_t)(x);
-}
-
 static uint64_t
 sbox_layer(uint64_t state)
 {

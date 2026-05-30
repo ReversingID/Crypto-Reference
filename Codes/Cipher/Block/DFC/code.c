@@ -26,6 +26,7 @@ Note:
 */
 #include <stdint.h>
 #include <string.h>
+#include "../byteorder.h"
 
 /* ************************* CONFIGURATION & SEED ************************* */
 #define BLOCKSIZE       128
@@ -91,35 +92,6 @@ void key_setup(dfc_t *config, const uint8_t *key);
 
 
 /* *************************** HELPER FUNCTIONS *************************** */
-static uint64_t
-load_be64(const uint8_t *p)
-{
-    return ((uint64_t)p[0] << 56) | ((uint64_t)p[1] << 48) |
-           ((uint64_t)p[2] << 40) | ((uint64_t)p[3] << 32) |
-           ((uint64_t)p[4] << 24) | ((uint64_t)p[5] << 16) |
-           ((uint64_t)p[6] <<  8) |  (uint64_t)p[7];
-}
-
-static void
-store_be64(uint8_t *p, uint64_t v)
-{
-    p[0] = (uint8_t)(v >> 56);
-    p[1] = (uint8_t)(v >> 48);
-    p[2] = (uint8_t)(v >> 40);
-    p[3] = (uint8_t)(v >> 32);
-    p[4] = (uint8_t)(v >> 24);
-    p[5] = (uint8_t)(v >> 16);
-    p[6] = (uint8_t)(v >>  8);
-    p[7] = (uint8_t)(v);
-}
-
-static uint32_t
-load_be32(const uint8_t *p)
-{
-    return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) |
-           ((uint32_t)p[2] <<  8) |  (uint32_t)p[3];
-}
-
 static uint64_t
 mul_add_mod(uint64_t a, uint64_t x, uint64_t b)
 {
@@ -250,7 +222,7 @@ expand_key(dfc_t *config, const uint8_t *key)
     memcpy(pk + KEYSIZEB, KS_PAD, KEYSIZEB);
 
     for (i = 0; i < 8; i++)
-        pk32[i] = load_be32(pk + 4 * i);
+        pk32[i] = load32_be(pk + 4 * i);
 
     oap[0] = ((uint64_t)pk32[0] << 32) | pk32[7];
     obp[0] = ((uint64_t)pk32[4] << 32) | pk32[3];
@@ -295,11 +267,11 @@ block_encrypt(dfc_t *config, uint8_t val[BLOCKSIZEB])
     uint64_t out_hi;
     uint64_t out_lo;
 
-    x0 = load_be64(val);
-    x1 = load_be64(val + 8);
+    x0 = load64_be(val);
+    x1 = load64_be(val + 8);
     feistel_enc(config->rk, ROUNDS, x0, x1, &out_hi, &out_lo);
-    store_be64(val, out_hi);
-    store_be64(val + 8, out_lo);
+    store64_be(val, out_hi);
+    store64_be(val + 8, out_lo);
 }
 
 void
@@ -318,11 +290,11 @@ block_decrypt(dfc_t *config, uint8_t val[BLOCKSIZEB])
         rev[i][1] = config->rk[ROUNDS - 1 - i][1];
     }
 
-    x0 = load_be64(val);
-    x1 = load_be64(val + 8);
+    x0 = load64_be(val);
+    x1 = load64_be(val + 8);
     feistel_enc(rev, ROUNDS, x0, x1, &out_hi, &out_lo);
-    store_be64(val, out_hi);
-    store_be64(val + 8, out_lo);
+    store64_be(val, out_hi);
+    store64_be(val + 8, out_lo);
 }
 
 void
