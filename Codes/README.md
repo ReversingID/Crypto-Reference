@@ -57,6 +57,7 @@ Teori mode: [`References/Modern/Encryption-Mode/`](../References/Modern/Encrypti
 | [Lucifer](Cipher/Block/Lucifer/) | Pendahulu DES |
 | [Madryga](Cipher/Block/Madryga/) | Block cipher 1984, data-dependent rotations |
 | [MARS](Cipher/Block/MARS/) | AES finalist |
+| [MISTY1](Cipher/Block/MISTY1/) | Nested Feistel, 64-bit block, 8 rounds; RFC 2994; basis of KASUMI |
 | [PRESENT](Cipher/Block/PRESENT/) | lightweight cipher |
 | [RC6](Cipher/Block/RC6/) | AES finalist |
 | [SAFER](Cipher/Block/SAFER/) | |
