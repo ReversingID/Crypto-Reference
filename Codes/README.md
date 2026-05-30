@@ -52,6 +52,7 @@ Teori mode: [`References/Modern/Encryption-Mode/`](../References/Modern/Encrypti
 | [Hierocrypt3](Cipher/Block/Hierocrypt3/) | |
 | [HIGHT](Cipher/Block/HIGHT/) | Lightweight block cipher (ISO/IEC 18033-3) |
 | [KHAZAD](Cipher/Block/KHAZAD/) | |
+| [KLEIN](Cipher/Block/KLEIN/) | Lightweight block cipher (64-bit block/key, 12 rounds) |
 | [KASUMI](Cipher/Block/KASUMI/) | 64-bit block, 8 rounds, 128-bit key; 3GPP TS 35.202; MISTY1 derivative (UMTS/GSM f8/f9) |
 | [Khufu](Cipher/Block/Khufu/) | |
 | [LEA](Cipher/Block/LEA/) | Lightweight Encryption Algorithm |
